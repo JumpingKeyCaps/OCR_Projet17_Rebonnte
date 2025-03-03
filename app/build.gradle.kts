@@ -67,12 +67,13 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     //Material3
     implementation(libs.androidx.material3)
-
     //Hilt (DI)
     implementation("com.google.dagger:hilt-android:2.51.1")
     implementation("androidx.hilt:hilt-navigation-fragment:1.2.0")
     ksp("com.google.dagger:hilt-android-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    //Coroutines
+    implementation(libs.kotlinx.coroutines.android)
 
     //Tests
     testImplementation(libs.junit)
