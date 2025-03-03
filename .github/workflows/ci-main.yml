@@ -1,0 +1,73 @@
+name: CI - Main Branch PR
+
+on:
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - "develop/**"
+    types: [opened, synchronize, reopened]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1 : Checkout du code source
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2 : Configuration de JDK 17
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: gradle
+
+      # Step 3 : Donner la permission d'exécution au wrapper Gradle
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      #start emulator and run instrumented tests
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      # Step : Récupérer l'historique Git complet pour SonarCloud
+      - name: Fetch full Git history
+        run: git fetch --unshallow
+
+      # Step 4 : Installation des dépendances du projet
+      - name: Download dependencies
+        run: ./gradlew dependencies
+
+      # Step 5 : Exécuter les tests unitaires
+      - name: Run Unit Tests
+        run: ./gradlew test
+
+      # Step 6 : Démarrer l'émulateur et exécuter les tests instrumentés
+      - name: Start emulator and run instrumented tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          target: google_apis
+          arch: x86_64
+          api-level: 35
+          script: |
+            echo "--- [Waiting for emulator to stabilize...]"
+            adb wait-for-device
+            
+            echo "--- [Unlocking emulator screen...]"
+            adb shell input keyevent 82
+            adb shell wm dismiss-keyguard
+            echo "--- [Building app ...]"
+            ./gradlew build
+            echo "--- [Running instrumented tests ...]"
+            ./gradlew connectedAndroidTest
+
+      # Step 7 : Vérification du statut du job
+      - name: Fail PR on error
+        if: ${{ failure() }}
+        run: exit 1

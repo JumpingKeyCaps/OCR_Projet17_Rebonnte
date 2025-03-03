@@ -37,8 +37,9 @@ import androidx.lifecycle.ViewModelProvider
 import com.openclassrooms.rebonnte.MainActivity
 import com.openclassrooms.rebonnte.ui.history.History
 import com.openclassrooms.rebonnte.ui.theme.RebonnteTheme
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.Date
-
+@AndroidEntryPoint
 class MedicineDetailActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

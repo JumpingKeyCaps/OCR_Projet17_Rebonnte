@@ -1,0 +1,41 @@
+name: CI - Epic Branch PR
+
+on:
+  pull_request:
+    branches:
+      - "epic/**"
+    types: [opened, synchronize, reopened]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1 : Checkout du code source
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2 : Configuration de JDK 17
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: gradle
+
+      # Step 3 : Donner la permission d'exécution au wrapper Gradle
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      # Step 4 : Installation des dépendances du projet
+      - name: Download dependencies
+        run: ./gradlew dependencies
+
+      # Step 5 : Exécuter les tests unitaires et générer le rapport Jacoco
+      - name: Run Unit Tests
+        run: ./gradlew test
+
+      # Step 6 : Vérification du statut du job
+      - name: Fail PR on error
+        if: ${{ failure() }}
+        run: exit 1
