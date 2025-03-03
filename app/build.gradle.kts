@@ -5,7 +5,7 @@ plugins {
     id("org.sonarqube") version "5.1.0.4882"
     id("jacoco")
     id("com.google.devtools.ksp")
-
+  //  id("com.google.gms.google-services")
 }
 
 android {
@@ -57,13 +57,38 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    //Compose
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.navigation.compose)
+    //UI
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
+    //Material3
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.navigation.compose)
+    //Hilt (DI)
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.fragment)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+    //Coroutines
+    implementation(libs.kotlinx.coroutines.android)
+    //SplashScreen
+    implementation(libs.androidx.core.splashscreen)
+    //Firebase Auth
+    implementation(libs.firebase.auth.ktx)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation (libs.play.services.auth)
+    //Firebase Firestore
+    implementation (libs.firebase.firestore.ktx)
+    implementation (libs.firebase.firestore)
+    //Firebase Storage
+    implementation(libs.firebase.storage.ktx)
+    implementation(libs.firebase.appcheck.debug)
+    implementation (libs.firebase.storage)
+    //Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -71,9 +96,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
-    //Hilt
-    implementation("com.google.dagger:hilt-android:2.51.1")
-    implementation("androidx.hilt:hilt-navigation-fragment:1.2.0")
-    ksp("com.google.dagger:hilt-android-compiler:2.51.1")
 }
