@@ -1,3 +1,5 @@
+import com.android.build.gradle.BaseExtension
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -11,6 +13,23 @@ plugins {
 android {
     namespace = "com.openclassrooms.rebonnte"
     compileSdk = 34
+
+
+
+
+    testCoverage {
+        version = "0.8.8"
+    }
+
+    testOptions {
+        animationsDisabled = true
+        unitTests.isIncludeAndroidResources = true
+    }
+
+
+
+
+
 
     defaultConfig {
         applicationId = "com.openclassrooms.rebonnte"
@@ -33,8 +52,14 @@ android {
                 "proguard-rules.pro"
             )
         }
+        debug {
+            enableAndroidTestCoverage = true
+            enableUnitTestCoverage = true
+        }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -96,4 +121,52 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+
+}
+
+//JACOCO STUFF --------------------
+tasks.withType<Test> {
+    extensions.configure(JacocoTaskExtension::class) {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
+}
+val androidExtension = extensions.getByType<BaseExtension>()
+
+val jacocoTestReport by tasks.registering(JacocoReport::class) {
+    dependsOn("testDebugUnitTest","connectedDebugAndroidTest")
+
+
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports"
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+    val fileFilter = listOf(
+        "**/R.class",
+        "**/R$*.class",
+        "**/di/**",
+        "**/hilt/**",
+        "**/Hilt_*.*",
+        )
+
+    val kotlinDebugClassesDir = fileTree("${project.buildDir}/tmp/kotlin-classes/debug/") {
+        exclude(fileFilter)
+    }
+
+    val mainSrc = androidExtension.sourceSets.getByName("main").java.srcDirs
+
+    classDirectories.setFrom(kotlinDebugClassesDir)
+    sourceDirectories.setFrom(files(mainSrc))
+    executionData.setFrom(
+        fileTree(project.buildDir) {
+            include(
+                "**/*.exec", "**/*.ec"
+            )
+        }
+    )
 }
