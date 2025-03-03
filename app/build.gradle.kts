@@ -5,7 +5,7 @@ plugins {
     id("org.sonarqube") version "5.1.0.4882"
     id("jacoco")
     id("com.google.devtools.ksp")
-
+  //  id("com.google.gms.google-services")
 }
 
 android {
@@ -76,6 +76,12 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     //SplashScreen
     implementation(libs.androidx.core.splashscreen)
+    //firebase auth
+    implementation(libs.firebase.auth.ktx)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation ("com.google.android.gms:play-services-auth:21.3.0")
+
     //Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
