@@ -68,10 +68,10 @@ dependencies {
     //Material3
     implementation(libs.androidx.material3)
     //Hilt (DI)
-    implementation("com.google.dagger:hilt-android:2.51.1")
-    implementation("androidx.hilt:hilt-navigation-fragment:1.2.0")
-    ksp("com.google.dagger:hilt-android-compiler:2.51.1")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.fragment)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
     //Coroutines
     implementation(libs.kotlinx.coroutines.android)
     //SplashScreen
@@ -80,15 +80,14 @@ dependencies {
     implementation(libs.firebase.auth.ktx)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
-    implementation ("com.google.android.gms:play-services-auth:21.3.0")
+    implementation (libs.play.services.auth)
     //Firebase Firestore
-    implementation ("com.google.firebase:firebase-firestore-ktx:25.1.1")
-    implementation ("com.google.firebase:firebase-firestore")
+    implementation (libs.firebase.firestore.ktx)
+    implementation (libs.firebase.firestore)
     //Firebase Storage
     implementation(libs.firebase.storage.ktx)
     implementation(libs.firebase.appcheck.debug)
-    implementation ("com.google.firebase:firebase-storage")
-
+    implementation (libs.firebase.storage)
     //Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -97,6 +96,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
-
 }
