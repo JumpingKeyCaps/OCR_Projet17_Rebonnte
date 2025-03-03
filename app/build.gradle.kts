@@ -12,6 +12,23 @@ android {
     namespace = "com.openclassrooms.rebonnte"
     compileSdk = 34
 
+
+
+
+    testCoverage {
+        version = "0.8.8"
+    }
+
+    testOptions {
+        animationsDisabled = true
+        unitTests.isIncludeAndroidResources = true
+    }
+
+
+
+
+
+
     defaultConfig {
         applicationId = "com.openclassrooms.rebonnte"
         minSdk = 24
