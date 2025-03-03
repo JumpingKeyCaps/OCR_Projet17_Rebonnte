@@ -1,3 +1,5 @@
+import com.android.build.gradle.BaseExtension
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -119,4 +121,49 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+
+//JACOCO STUFF --------------------
+tasks.withType<Test> {
+    extensions.configure(JacocoTaskExtension::class) {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
+}
+val androidExtension = extensions.getByType<BaseExtension>()
+
+val jacocoTestReport by tasks.registering(JacocoReport::class) {
+    dependsOn("testDebugUnitTest","connectedDebugAndroidTest")
+
+
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports"
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+    val fileFilter = listOf(
+        "**/R.class",
+        "**/R$*.class",
+        "**/di/**",
+        "**/hilt/**",
+        "**/Hilt_*.*",
+        )
+
+    val kotlinDebugClassesDir = fileTree("${project.buildDir}/tmp/kotlin-classes/debug/") {
+        exclude(fileFilter)
+    }
+
+    val mainSrc = androidExtension.sourceSets.getByName("main").java.srcDirs
+
+    classDirectories.setFrom(kotlinDebugClassesDir)
+    sourceDirectories.setFrom(files(mainSrc))
+    executionData.setFrom(
+        fileTree(project.buildDir) {
+            include(
+                "**/*.exec", "**/*.ec"
+            )
+        }
+    )
 }
