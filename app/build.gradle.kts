@@ -76,13 +76,18 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     //SplashScreen
     implementation(libs.androidx.core.splashscreen)
-    //Firebase auth
+    //Firebase Auth
     implementation(libs.firebase.auth.ktx)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation ("com.google.android.gms:play-services-auth:21.3.0")
-    //Firebase firestore
+    //Firebase Firestore
     implementation ("com.google.firebase:firebase-firestore-ktx:25.1.1")
+    implementation ("com.google.firebase:firebase-firestore")
+    //Firebase Storage
+    implementation(libs.firebase.storage.ktx)
+    implementation(libs.firebase.appcheck.debug)
+    implementation ("com.google.firebase:firebase-storage")
 
     //Tests
     testImplementation(libs.junit)
