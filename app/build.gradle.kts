@@ -74,7 +74,8 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     //Coroutines
     implementation(libs.kotlinx.coroutines.android)
-
+    //SplashScreen
+    implementation(libs.androidx.core.splashscreen)
     //Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
