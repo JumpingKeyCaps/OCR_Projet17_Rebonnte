@@ -45,5 +45,20 @@ class AuthenticationViewModel @Inject constructor(private val authRepository: Au
         }
     }
 
+    /**
+     * Signs in a user with the provided email and password.
+     * @param email The email address of the user.
+     * @param password The password for the user.
+     */
+    fun signInUser(email: String, password: String) {
+        viewModelScope.launch {
+            authRepository.signInUser(email, password)
+                .collect { result ->
+                    _signInResult.emit(result)
+                }
+        }
+    }
+
+
 
 }
