@@ -72,5 +72,14 @@ class AuthenticationViewModel @Inject constructor(private val authRepository: Au
 
 
 
+    /**
+     * Capitalizes the first letter of a string.
+     * @return The capitalized string.
+     */
+    private fun String.capitalizeFirstLetter(): String {
+        return this.lowercase().replaceFirstChar {
+            if (it.isLowerCase()) it.titlecase() else it.toString()
+        }
+    }
 
 }
