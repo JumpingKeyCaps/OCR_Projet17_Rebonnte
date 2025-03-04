@@ -1,8 +1,11 @@
 package com.openclassrooms.rebonnte.di
 
+import com.openclassrooms.rebonnte.data.service.authentication.FirebaseAuthService
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 /**
  * This class acts as a Dagger Hilt module, responsible for providing dependencies to other parts of the application.
@@ -13,5 +16,16 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 class AppModule {
 
-    //add here all injector provider
+
+    /**
+     * Provides a Singleton instance of FirebaseAuthService.
+     * @return A Singleton instance of FirebaseAuthService.
+     */
+    @Provides
+    @Singleton
+    fun provideFirebaseAuthService(): FirebaseAuthService {
+        return FirebaseAuthService()
+    }
+
+
 }
