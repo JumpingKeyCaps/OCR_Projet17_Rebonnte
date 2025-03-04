@@ -7,7 +7,7 @@ plugins {
     id("org.sonarqube") version "5.1.0.4882"
     id("jacoco")
     id("com.google.devtools.ksp")
-  //  id("com.google.gms.google-services")
+    id("com.google.gms.google-services")
 }
 
 android {
