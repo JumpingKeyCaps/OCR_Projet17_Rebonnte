@@ -59,6 +59,18 @@ class AuthenticationViewModel @Inject constructor(private val authRepository: Au
         }
     }
 
+    /**
+     * Sends a password reset email to the provided email address.
+     * @param email The email address to send the reset email to.
+     */
+    fun sendPasswordResetEmail(email: String) {
+        viewModelScope.launch {
+            authRepository.sendPasswordResetEmail(email)
+                .collect {}
+        }
+    }
+
+
 
 
 }
