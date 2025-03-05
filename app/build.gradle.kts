@@ -86,6 +86,7 @@ dependencies {
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     //UI
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
@@ -113,6 +114,9 @@ dependencies {
     implementation(libs.firebase.storage.ktx)
     implementation(libs.firebase.appcheck.debug)
     implementation (libs.firebase.storage)
+    //accompanist
+    implementation ("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
+    implementation ("com.google.accompanist:accompanist-navigation-animation:0.32.0")
     //Tests
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

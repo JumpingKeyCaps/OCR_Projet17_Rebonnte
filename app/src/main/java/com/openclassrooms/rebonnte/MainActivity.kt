@@ -70,6 +70,7 @@ import androidx.navigation.compose.rememberNavController
 import com.openclassrooms.rebonnte.data.service.authentication.FirebaseAuthService
 import com.openclassrooms.rebonnte.ui.aisle.AisleScreen
 import com.openclassrooms.rebonnte.ui.aisle.AisleViewModel
+import com.openclassrooms.rebonnte.ui.authentication.LoginScreen
 import com.openclassrooms.rebonnte.ui.medicine.MedicineScreen
 import com.openclassrooms.rebonnte.ui.medicine.MedicineViewModel
 import com.openclassrooms.rebonnte.ui.theme.RebonnteTheme
@@ -93,9 +94,13 @@ class MainActivity : ComponentActivity() {
             //debug of auth service injection
             Log.d("authDebug", "Connected user: ${authService.getCurrentConnectedUser()!=null} ")
 
-            MyApp()
+           // MyApp()
+            LoginScreen(onNavigateToMainScreen = {  },
+                onNavigateToRegisterScreen = {  })
+
         }
-        startBroadcastReceiver()  //crazy loop
+
+       // startBroadcastReceiver()  //crazy loop
     }
 
     private fun startMyBroadcast() {
