@@ -74,6 +74,7 @@ import com.openclassrooms.rebonnte.ui.authentication.LoginScreen
 import com.openclassrooms.rebonnte.ui.authentication.RegisterUserScreen
 import com.openclassrooms.rebonnte.ui.medicine.MedicineScreen
 import com.openclassrooms.rebonnte.ui.medicine.MedicineViewModel
+import com.openclassrooms.rebonnte.ui.noInternet.NoInternetScreen
 import com.openclassrooms.rebonnte.ui.theme.RebonnteTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -97,7 +98,8 @@ class MainActivity : ComponentActivity() {
 
            // MyApp()
            // LoginScreen(onNavigateToMainScreen = {  },onNavigateToRegisterScreen = {  })
-            RegisterUserScreen(onNavigateToMainScreen = {  },onNavigateToSignInScreen = {  })
+           // RegisterUserScreen(onNavigateToMainScreen = {  },onNavigateToSignInScreen = {  })
+            NoInternetScreen()
 
         }
 
