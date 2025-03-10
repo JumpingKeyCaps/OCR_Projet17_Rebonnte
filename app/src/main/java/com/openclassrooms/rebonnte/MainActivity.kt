@@ -71,6 +71,7 @@ import com.openclassrooms.rebonnte.data.service.authentication.FirebaseAuthServi
 import com.openclassrooms.rebonnte.ui.aisle.AisleScreen
 import com.openclassrooms.rebonnte.ui.aisle.AisleViewModel
 import com.openclassrooms.rebonnte.ui.authentication.LoginScreen
+import com.openclassrooms.rebonnte.ui.authentication.RegisterUserScreen
 import com.openclassrooms.rebonnte.ui.medicine.MedicineScreen
 import com.openclassrooms.rebonnte.ui.medicine.MedicineViewModel
 import com.openclassrooms.rebonnte.ui.theme.RebonnteTheme
@@ -95,8 +96,8 @@ class MainActivity : ComponentActivity() {
             Log.d("authDebug", "Connected user: ${authService.getCurrentConnectedUser()!=null} ")
 
            // MyApp()
-            LoginScreen(onNavigateToMainScreen = {  },
-                onNavigateToRegisterScreen = {  })
+           // LoginScreen(onNavigateToMainScreen = {  },onNavigateToRegisterScreen = {  })
+            RegisterUserScreen(onNavigateToMainScreen = {  },onNavigateToSignInScreen = {  })
 
         }
 
