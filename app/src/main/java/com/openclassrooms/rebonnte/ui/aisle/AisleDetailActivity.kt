@@ -29,7 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import com.openclassrooms.rebonnte.MainActivity
-import com.openclassrooms.rebonnte.ui.medicine.Medicine
+import com.openclassrooms.rebonnte.ui.medicine.Medecine
 import com.openclassrooms.rebonnte.ui.medicine.MedicineDetailActivity
 import com.openclassrooms.rebonnte.ui.medicine.MedicineViewModel
 import com.openclassrooms.rebonnte.ui.theme.RebonnteTheme
@@ -74,7 +74,7 @@ fun AisleDetailScreen(name: String, viewModel: MedicineViewModel) {
 }
 
 @Composable
-fun MedicineItem(medicine: Medicine, onClick: (String) -> Unit) {
+fun MedicineItem(medicine: Medecine, onClick: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
