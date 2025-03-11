@@ -7,8 +7,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.Locale
 import java.util.Random
-//@HiltViewModel
-class MedicineViewModel : ViewModel() {
+import javax.inject.Inject
+
+@HiltViewModel
+class MedicineViewModel @Inject constructor() : ViewModel() {
     var _medicines = MutableStateFlow<MutableList<Medicine>>(mutableListOf())
     val medicines: StateFlow<List<Medicine>> get() = _medicines
 
@@ -20,10 +22,11 @@ class MedicineViewModel : ViewModel() {
         val currentMedicines = ArrayList(medicines.value)
         currentMedicines.add(
             Medicine(
-                "Medicine " + (currentMedicines.size + 1),
-                Random().nextInt(100),
-                aisles[Random().nextInt(aisles.size)].name,
-                emptyList()
+                id = "Medicine " + (currentMedicines.size + 1),
+                name = Random().nextInt(100).toString(),
+                stock = Random().nextInt(100),
+                nameAisle = aisles[Random().nextInt(aisles.size)].name,
+                histories = emptyList()
             )
         )
         _medicines.value = currentMedicines
