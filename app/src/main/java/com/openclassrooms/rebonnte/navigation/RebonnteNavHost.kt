@@ -67,9 +67,14 @@ fun RebonnteNavHost (
           //  AisleDetailsScreen(aisleId = aisleId))
         }
 
+
         //Add medicine screen
         composable(route = ScreensNav.AddMedicine.route){
           //  AddMedicineScreen(onBackClick = { navHostController.popBackStack() })
+        }
+        //Add Aisle screen
+        composable(route = ScreensNav.AddAisle.route){
+            //  AddAisleScreen(onBackClick = { navHostController.popBackStack() })
         }
 
 
