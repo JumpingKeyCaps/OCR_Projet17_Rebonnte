@@ -25,7 +25,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun AisleScreen(
-    viewModel: AisleViewModel = hiltViewModel()
+    viewModel: AisleViewModel = hiltViewModel(),
+    onAisleClicked: (com.openclassrooms.rebonnte.domain.Aisle) -> Unit
 ) {
     val aisles by viewModel.aisles.collectAsState(initial = emptyList())
     val context = LocalContext.current
