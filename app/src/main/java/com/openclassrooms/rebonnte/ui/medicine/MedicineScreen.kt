@@ -16,11 +16,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
-fun MedicineScreen(viewModel: MedicineViewModel = viewModel()) {
+fun MedicineScreen(
+    viewModel: MedicineViewModel = hiltViewModel(),
+    onBackClick: () -> Unit
+    ) {
     val medicines by viewModel.medicines.collectAsState(initial = emptyList())
     val context = LocalContext.current
 

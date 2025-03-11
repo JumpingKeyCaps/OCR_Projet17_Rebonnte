@@ -21,9 +21,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
-fun AisleScreen(viewModel: AisleViewModel) {
+fun AisleScreen(
+    viewModel: AisleViewModel = hiltViewModel()
+) {
     val aisles by viewModel.aisles.collectAsState(initial = emptyList())
     val context = LocalContext.current
 

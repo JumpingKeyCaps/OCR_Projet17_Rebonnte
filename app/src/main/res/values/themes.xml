@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Rebonnte" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.Rebonnte" parent="android:Theme.DeviceDefault.NoActionBar">
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/rebonnte_black</item>
+        <item name="android:statusBarColor">@color/rebonnte_black</item>
+        <item name="android:navigationBarColor">@color/rebonnte_black</item>
     </style>
     <style name="Theme.Rebonnte.ActionBar" parent="android:Theme.Material.Light.DarkActionBar"/>
 
