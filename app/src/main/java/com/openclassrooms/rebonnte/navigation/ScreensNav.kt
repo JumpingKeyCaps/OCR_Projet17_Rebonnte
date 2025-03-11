@@ -14,4 +14,16 @@ val navArguments: List<NamedNavArgument> = emptyList()
 
     data object NoInternet : ScreensNav("noInternet")
 
+
+    data object MedicineDetails : ScreensNav("medicineDetails/{medicineId}"){
+        fun createRoute(medicineId: String) = "medicineDetails/$medicineId"
+    }
+
+    data object AisleDetails : ScreensNav("aisleDetails/{aisleId}"){
+        fun createRoute(aisleId: String) = "aisleDetails/$aisleId"
+    }
+
+    data object AddMedicine : ScreensNav("addMedicine")
+
+
 }
