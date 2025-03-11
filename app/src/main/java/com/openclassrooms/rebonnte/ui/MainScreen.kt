@@ -1,6 +1,11 @@
 package com.openclassrooms.rebonnte.ui
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -16,8 +21,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.google.firebase.auth.FirebaseUser
+import com.openclassrooms.rebonnte.domain.Aisle
+import com.openclassrooms.rebonnte.navigation.ScreensNav
+import com.openclassrooms.rebonnte.ui.aisle.AisleScreen
 
 import com.openclassrooms.rebonnte.ui.medicine.Medecine
+import com.openclassrooms.rebonnte.ui.medicine.MedicineScreen
 
 /**
  * Main screen composable function.
@@ -33,6 +47,8 @@ fun MainScreen(
 ) {
 
     //todo main screen contentment for Aisle and Medicine screens
+
+
 
     Scaffold(
         bottomBar = {
@@ -74,4 +90,38 @@ fun MainScreen(
     }
 
 
+
+
+
+
+
+}
+
+
+@Composable
+fun InnerNavigationGraph(
+    navController: NavHostController,
+    startDestination: String,
+    onMedicineClicked: (Medecine) -> Unit,
+    onAisleClicked: (Aisle) -> Unit){
+
+    NavHost(navController, startDestination = startDestination, Modifier.padding(0.dp)) {
+        //-- Aisle Screen
+        composable(route = ScreensNav.Aisles.route,
+            enterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }) + fadeIn() },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }) + fadeOut() }
+        ) {
+            AisleScreen(onAisleClicked = {onAisleClicked(it)})
+        }
+        //-- medicines screen
+        composable(route = ScreensNav.Medicines.route,
+            enterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }) + fadeIn() },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }) + fadeOut() }
+        ) {
+            MedicineScreen(
+                onMedicineClicked = { onMedicineClicked(it) },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+    }
 }
