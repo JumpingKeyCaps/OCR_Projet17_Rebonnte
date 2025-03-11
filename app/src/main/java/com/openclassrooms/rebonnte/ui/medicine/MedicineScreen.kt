@@ -39,7 +39,7 @@ fun MedicineScreen(
 }
 
 @Composable
-fun MedicineItem(medicine: Medicine, onClick: () -> Unit) {
+fun MedicineItem(medicine: Medecine, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()

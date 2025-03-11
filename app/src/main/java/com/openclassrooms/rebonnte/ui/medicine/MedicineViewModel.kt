@@ -11,8 +11,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MedicineViewModel @Inject constructor() : ViewModel() {
-    var _medicines = MutableStateFlow<MutableList<Medicine>>(mutableListOf())
-    val medicines: StateFlow<List<Medicine>> get() = _medicines
+    var _medicines = MutableStateFlow<MutableList<Medecine>>(mutableListOf())
+    val medicines: StateFlow<List<Medecine>> get() = _medicines
 
     init {
         _medicines.value = ArrayList() // Initialiser avec une liste vide
@@ -21,7 +21,7 @@ class MedicineViewModel @Inject constructor() : ViewModel() {
     fun addRandomMedicine(aisles: List<Aisle>) {
         val currentMedicines = ArrayList(medicines.value)
         currentMedicines.add(
-            Medicine(
+            Medecine(
                 id = "Medicine " + (currentMedicines.size + 1),
                 name = Random().nextInt(100).toString(),
                 stock = Random().nextInt(100),
@@ -33,8 +33,8 @@ class MedicineViewModel @Inject constructor() : ViewModel() {
     }
 
     fun filterByName(name: String) {
-        val currentMedicines: List<Medicine> = medicines.value
-        val filteredMedicines: MutableList<Medicine> = ArrayList()
+        val currentMedicines: List<Medecine> = medicines.value
+        val filteredMedicines: MutableList<Medecine> = ArrayList()
         for (medicine in currentMedicines) {
             if (medicine.name.lowercase(Locale.getDefault())
                     .contains(name.lowercase(Locale.getDefault()))
@@ -51,13 +51,13 @@ class MedicineViewModel @Inject constructor() : ViewModel() {
 
     fun sortByName() {
         val currentMedicines = ArrayList(medicines.value)
-        currentMedicines.sortWith(Comparator.comparing(Medicine::name))
+        currentMedicines.sortWith(Comparator.comparing(Medecine::name))
         _medicines.value = currentMedicines
     }
 
     fun sortByStock() {
         val currentMedicines = ArrayList(medicines.value)
-        currentMedicines.sortWith(Comparator.comparingInt(Medicine::stock))
+        currentMedicines.sortWith(Comparator.comparingInt(Medecine::stock))
         _medicines.value = currentMedicines
     }
 }

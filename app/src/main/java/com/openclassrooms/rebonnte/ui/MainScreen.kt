@@ -17,7 +17,7 @@ import androidx.compose.runtime.Composable
 
 import androidx.compose.ui.Modifier
 
-import com.openclassrooms.rebonnte.ui.medicine.Medicine
+import com.openclassrooms.rebonnte.ui.medicine.Medecine
 
 /**
  * Main screen composable function.
@@ -28,7 +28,7 @@ import com.openclassrooms.rebonnte.ui.medicine.Medicine
 fun MainScreen(
     onLogOutAction: () -> Unit,
     onAddMedicineAction: () -> Unit,
-    onMedicineClicked: (Medicine) -> Unit,
+    onMedicineClicked: (Medecine) -> Unit,
     onAisleClicked: (String) -> Unit
 ) {
 
