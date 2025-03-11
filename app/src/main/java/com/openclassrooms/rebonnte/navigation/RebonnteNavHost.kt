@@ -76,7 +76,7 @@ fun RebonnteNavHost (
         //Login screen
         composable(route = ScreensNav.SignIn.route){
             LoginScreen(
-                onNavigateToAisleScreen = {
+                onNavigateToMainScreen = {
                     navHostController.navigate(ScreensNav.Main.route) {
                         //clean the nav backstack
                         popUpTo(0)
@@ -100,9 +100,8 @@ fun RebonnteNavHost (
 
             ){
             RegisterUserScreen(
-                onNavigateToAisleScreen = { navHostController.navigate(ScreensNav.Main.route) },
-                onNavigateToLoginScreen = { navHostController.navigate(ScreensNav.SignIn.route) },
-                onBackClick = { navHostController.popBackStack() }
+                onNavigateToMainScreen = { navHostController.navigate(ScreensNav.Main.route) },
+                onNavigateToLoginScreen = { navHostController.navigate(ScreensNav.SignIn.route) }
             )
         }
 
