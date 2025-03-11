@@ -47,34 +47,21 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.openclassrooms.rebonnte.data.service.authentication.FirebaseAuthService
-import com.openclassrooms.rebonnte.ui.aisle.AisleScreen
-import com.openclassrooms.rebonnte.ui.aisle.AisleViewModel
-import com.openclassrooms.rebonnte.ui.authentication.LoginScreen
-import com.openclassrooms.rebonnte.ui.authentication.RegisterUserScreen
-import com.openclassrooms.rebonnte.ui.medicine.MedicineScreen
-import com.openclassrooms.rebonnte.ui.medicine.MedicineViewModel
-import com.openclassrooms.rebonnte.ui.noInternet.NoInternetScreen
+import com.openclassrooms.rebonnte.navigation.RebonnteNavHost
+import com.openclassrooms.rebonnte.navigation.ScreensNav
 import com.openclassrooms.rebonnte.ui.theme.RebonnteTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -96,10 +83,8 @@ class MainActivity : ComponentActivity() {
             //debug of auth service injection
             Log.d("authDebug", "Connected user: ${authService.getCurrentConnectedUser()!=null} ")
 
-           // MyApp()
-           // LoginScreen(onNavigateToMainScreen = {  },onNavigateToRegisterScreen = {  })
-           // RegisterUserScreen(onNavigateToMainScreen = {  },onNavigateToSignInScreen = {  })
-            NoInternetScreen()
+            MyApp()
+
 
         }
 
@@ -145,12 +130,11 @@ class MainActivity : ComponentActivity() {
 
 //todo - Extract navigation logic outside compo
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyApp() {
     val navController = rememberNavController()
-    val medicineViewModel: MedicineViewModel = viewModel()
-    val aisleViewModel: AisleViewModel = viewModel()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val route = navBackStackEntry?.destination?.route
 
@@ -184,21 +168,21 @@ fun MyApp() {
                                         ) {
                                             DropdownMenuItem(
                                                 onClick = {
-                                                    medicineViewModel.sortByNone()
+                   //                                 medicineViewModel.sortByNone()
                                                     expanded = false
                                                 },
                                                 text = { Text("Sort by None") }
                                             )
                                             DropdownMenuItem(
                                                 onClick = {
-                                                    medicineViewModel.sortByName()
+                 //                                   medicineViewModel.sortByName()
                                                     expanded = false
                                                 },
                                                 text = { Text("Sort by Name") }
                                             )
                                             DropdownMenuItem(
                                                 onClick = {
-                                                    medicineViewModel.sortByStock()
+               //                                     medicineViewModel.sortByStock()
                                                     expanded = false
                                                 },
                                                 text = { Text("Sort by Stock") }
@@ -213,7 +197,7 @@ fun MyApp() {
                         EmbeddedSearchBar(
                             query = searchQuery,
                             onQueryChange = {
-                                medicineViewModel.filterByName(it)
+           //                     medicineViewModel.filterByName(it)
                                 searchQuery = it
                             },
                             isSearchActive = isSearchActive,
@@ -242,23 +226,19 @@ fun MyApp() {
             floatingActionButton = {
                 FloatingActionButton(onClick = {
                     if (route == "medicine") {
-                        medicineViewModel.addRandomMedicine(aisleViewModel.aisles.value)
+     //                   medicineViewModel.addRandomMedicine(aisleViewModel.aisles.value)
                     } else if (route == "aisle") {
-                        aisleViewModel.addRandomAisle()
+     //                   aisleViewModel.addRandomAisle()
                     }
                 }) {
                     Icon(Icons.Default.Add, contentDescription = "Add")
                 }
             }
         ) {
-            NavHost(
-                modifier = Modifier.padding(it),
-                navController = navController,
-                startDestination = "aisle"
-            ) {
-                composable("aisle") { AisleScreen(aisleViewModel) }
-                composable("medicine") { MedicineScreen(medicineViewModel) }
-            }
+            RebonnteNavHost(
+                navHostController = navController,
+                startDestination = ScreensNav.Main.route,
+            )
         }
     }
 }

@@ -56,8 +56,8 @@ import com.openclassrooms.rebonnte.ui.theme.Rebonnte_green2
  **/
 @Composable
 fun RegisterUserScreen(viewModel: AuthenticationViewModel = hiltViewModel(),
-                       onNavigateToSignInScreen: () -> Unit,
-                       onNavigateToMainScreen: () -> Unit
+                       onNavigateToMainScreen: () -> Unit,
+                       onNavigateToLoginScreen: () -> Unit
 ) {
 
     //Register user result from the viewmodel
@@ -229,7 +229,7 @@ fun RegisterUserScreen(viewModel: AuthenticationViewModel = hiltViewModel(),
 
             Row {
                 Text("Already have an account? ", color = Color.Gray)
-                TextButton(onClick = { onNavigateToSignInScreen() }) {
+                TextButton(onClick = { onNavigateToLoginScreen() }) {
                     Text("Sign In!", fontWeight = FontWeight.Bold, color = Rebonnte_green1)
                 }
             }
