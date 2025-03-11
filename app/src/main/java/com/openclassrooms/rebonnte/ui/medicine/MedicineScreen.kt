@@ -22,7 +22,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun MedicineScreen(
     viewModel: MedicineViewModel = hiltViewModel(),
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onMedicineClicked: (Medecine) -> Unit
     ) {
     val medicines by viewModel.medicines.collectAsState(initial = emptyList())
     val context = LocalContext.current
