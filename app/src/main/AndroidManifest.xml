@@ -21,11 +21,7 @@
             android:theme="@style/Theme.Rebonnte.ActionBar"
             android:parentActivityName=".MainActivity"
             android:exported="false" />
-        <activity
-            android:name=".ui.aisle.AisleDetailActivity"
-            android:parentActivityName=".MainActivity"
-            android:theme="@style/Theme.Rebonnte.ActionBar"
-            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:windowSoftInputMode="adjustPan"

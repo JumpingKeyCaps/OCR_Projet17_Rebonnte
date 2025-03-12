@@ -58,7 +58,7 @@ class MedicineDetailActivity : ComponentActivity() {
 fun MedicineDetailScreen(name: String, viewModel: MedicineViewModel) {
     val medicines by viewModel.medicines.collectAsState(initial = emptyList())
     val medicine = medicines.find { it.name == name } ?: return
-    var stock by remember { mutableStateOf(medicine.stock) }
+  //  var stock by remember { mutableStateOf(medicine.stock) }
 
     Scaffold { paddingValues ->
         Column(
@@ -75,7 +75,7 @@ fun MedicineDetailScreen(name: String, viewModel: MedicineViewModel) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             TextField(
-                value = medicine.nameAisle,
+                value = "",//medicine.nameAisle
                 onValueChange = {},
                 label = { Text("Aisle") },
                 enabled = false,
@@ -87,17 +87,7 @@ fun MedicineDetailScreen(name: String, viewModel: MedicineViewModel) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 IconButton(onClick = {
-                    if (stock > 0) {
-                        medicines[medicines.size].histories.toMutableList().add(
-                            History(
-                                medicine.name,
-                                "efeza56f1e65f",
-                                Date().toString(),
-                                "Updated medicine details"
-                            )
-                        )
-                        stock--
-                    }
+                   //todo UPDATE THE STOCK -
                 }) {
                     Icon(
                         imageVector = Icons.Filled.KeyboardArrowDown,
@@ -105,22 +95,14 @@ fun MedicineDetailScreen(name: String, viewModel: MedicineViewModel) {
                     )
                 }
                 TextField(
-                    value = stock.toString(),
+                    value = "stock.toString()",
                     onValueChange = {},
                     label = { Text("Stock") },
                     enabled = false,
                     modifier = Modifier.weight(1f)
                 )
                 IconButton(onClick = {
-                    medicines[medicines.size].histories.toMutableList().add(
-                        History(
-                            medicine.name,
-                            "efeza56f1e65f",
-                            Date().toString(),
-                            "Updated medicine details"
-                        )
-                    )
-                    stock++
+                    //todo update the stock +
                 }) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowUp,
@@ -131,11 +113,11 @@ fun MedicineDetailScreen(name: String, viewModel: MedicineViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = "History", style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(medicine.histories) { history ->
-                    HistoryItem(history = history)
-                }
-            }
+         //   LazyColumn(modifier = Modifier.fillMaxSize()) {
+          //      items(medicine.histories) { history ->
+          //          HistoryItem(history = history)
+          //      }
+          //  }
         }
     }
 }

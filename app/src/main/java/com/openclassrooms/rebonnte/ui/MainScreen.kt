@@ -5,13 +5,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -30,12 +30,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.openclassrooms.rebonnte.domain.Aisle
+import com.openclassrooms.rebonnte.domain.Medicine
 import com.openclassrooms.rebonnte.navigation.ScreensNav
 import com.openclassrooms.rebonnte.ui.aisle.AisleScreen
 
-import com.openclassrooms.rebonnte.ui.medicine.Medecine
 import com.openclassrooms.rebonnte.ui.medicine.MedicineScreen
 
 /**
@@ -43,11 +42,12 @@ import com.openclassrooms.rebonnte.ui.medicine.MedicineScreen
  *  - Manages the inner navigation graph for the Aisle and Medicine screens.
  *  - Manages the bottom navigation bar.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     onLogOutAction: () -> Unit,
     onAddMedicineAction: () -> Unit,
-    onMedicineClicked: (Medecine) -> Unit,
+    onMedicineClicked: (Medicine) -> Unit,
     onAisleClicked: (Aisle) -> Unit
 ) {
 
@@ -80,7 +80,8 @@ fun MainScreen(
                 navController = navController,
                 startDestination = ScreensNav.Aisles.route,
                 onMedicineClicked = onMedicineClicked,
-                onAisleClicked = onAisleClicked)
+                onAisleClicked = onAisleClicked,
+                onLogOutAction = onLogOutAction)
 
         }
     }
@@ -93,8 +94,9 @@ fun MainScreen(
 fun InnerNavigationGraph(
     navController: NavHostController,
     startDestination: String,
-    onMedicineClicked: (Medecine) -> Unit,
-    onAisleClicked: (Aisle) -> Unit){
+    onMedicineClicked: (Medicine) -> Unit,
+    onAisleClicked: (Aisle) -> Unit,
+    onLogOutAction: () -> Unit ){
 
     NavHost(navController, startDestination = startDestination, Modifier.padding(0.dp)) {
         //-- Aisle Screen
@@ -102,7 +104,10 @@ fun InnerNavigationGraph(
             enterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }) + fadeIn() },
             exitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }) + fadeOut() }
         ) {
-            AisleScreen(onAisleClicked = {onAisleClicked(it)})
+            AisleScreen(
+                onAisleClicked = {onAisleClicked(it)},
+                onLogOutAction = { onLogOutAction() },
+            )
         }
         //-- medicines screen
         composable(route = ScreensNav.Medicines.route,
