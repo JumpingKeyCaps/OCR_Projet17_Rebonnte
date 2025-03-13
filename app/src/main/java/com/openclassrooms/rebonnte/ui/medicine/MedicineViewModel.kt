@@ -17,13 +17,18 @@ class MedicineViewModel @Inject constructor() : ViewModel() {
 
     init {
         _medicines.value = ArrayList() // Initialiser avec une liste vide
+        _medicines.value = mutableListOf(
+            Medicine( medicineId = "Medicine 1", "Paracetamol", description = "", dosage = "100mg",),
+            Medicine( medicineId = "Medicine 2", "Aspegic", description = "", dosage = "100mg",),
+            Medicine( medicineId = "Medicine 3", "Fervex", description = "", dosage = "100mg",)
+        )
     }
 
     fun addRandomMedicine(aisles: List<Aisle>) {
         val currentMedicines = ArrayList(medicines.value)
         currentMedicines.add(
             Medicine(
-                id = "Medicine " + (currentMedicines.size + 1),
+                medicineId = "Medicine " + (currentMedicines.size + 1),
                 name = Random().nextInt(100).toString(),
               //  stock = Random().nextInt(100),
             //    nameAisle = aisles[Random().nextInt(aisles.size)].name,
