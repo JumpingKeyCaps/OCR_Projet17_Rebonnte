@@ -22,7 +22,7 @@ fun MedicineWithStockItem(medicine: MedicineWithStock, onClick: (String) -> Unit
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick(medicine.name) }
+            .clickable { onClick(medicine.medicineId) }
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
