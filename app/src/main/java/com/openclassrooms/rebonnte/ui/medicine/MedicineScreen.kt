@@ -108,7 +108,7 @@ fun MedicineScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues)
         ) {
-            items(medicines, key = { it.id }) { medicine ->
+            items(medicines, key = { it.medicineId }) { medicine ->
                 MedicineItem(medicine = medicine, onClick = {
                     onMedicineClicked(medicine)
                 })
