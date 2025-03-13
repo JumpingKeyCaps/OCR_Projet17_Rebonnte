@@ -2,6 +2,7 @@ package com.openclassrooms.rebonnte.di
 
 import com.openclassrooms.rebonnte.data.repository.AuthenticationRepository
 import com.openclassrooms.rebonnte.data.service.authentication.FirebaseAuthService
+import com.openclassrooms.rebonnte.data.service.firestore.FireStoreService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,6 +38,15 @@ class AppModule {
     @Singleton
     fun provideAuthRepository(authService: FirebaseAuthService): AuthenticationRepository {
         return AuthenticationRepository(authService)
+    }
+
+
+
+    @Provides
+    @Singleton
+    fun provideFireStoreService(): FireStoreService {
+        return FireStoreService()
+
     }
 
 
