@@ -1,6 +1,7 @@
 package com.openclassrooms.rebonnte.ui.aisle
 
 import androidx.lifecycle.ViewModel
+import com.openclassrooms.rebonnte.domain.Aisle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -8,11 +9,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AisleViewModel @Inject constructor() : ViewModel() {
-    var _aisles = MutableStateFlow<List<Aisle>>(emptyList())
+    private var _aisles = MutableStateFlow<List<Aisle>>(emptyList())
     val aisles: StateFlow<List<Aisle>> get() = _aisles
 
     init {
-        _aisles.value = listOf(Aisle("Main Aisle"))
+        _aisles.value = listOf(
+            Aisle("Main_Aisle", name = "Main Aisle"),
+            Aisle("Second_Aisle", name = "Second Aisle"),
+            Aisle("Third_Aisle", name = "Third Aisle"),
+            Aisle("Fourth_Aisle", name = "Fourth Aisle"))
     }
 
     fun addRandomAisle() {

@@ -9,14 +9,17 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.openclassrooms.rebonnte.ui.MainScreen
+import com.openclassrooms.rebonnte.ui.aisle.detail.AisleDetailScreen
 import com.openclassrooms.rebonnte.ui.authentication.LoginScreen
 import com.openclassrooms.rebonnte.ui.authentication.RegisterUserScreen
+import com.openclassrooms.rebonnte.ui.medicine.detail.MedicineDetailScreen
 import com.openclassrooms.rebonnte.ui.noInternet.NoInternetScreen
 
 @Composable
 fun RebonnteNavHost (
     navHostController: NavHostController,
-    startDestination: String
+    startDestination: String,
+    onLogOutAction: ()->Unit
 ) {
     NavHost(
         navController = navHostController,
@@ -24,10 +27,11 @@ fun RebonnteNavHost (
     ) {
 
         //Main screen
-        composable(route = ScreensNav.Main.route){
+        composable(route = ScreensNav.Main.route ){
             //todo main screen conteneur
             MainScreen(
                 onLogOutAction = {
+                    onLogOutAction()
                     navHostController.navigate(ScreensNav.SignIn.route) {
                         //clean the nav backstack
                         popUpTo(0)
@@ -38,11 +42,11 @@ fun RebonnteNavHost (
                 onAddMedicineAction = {
                     navHostController.navigate(ScreensNav.AddMedicine.route)
                 },
-                onMedicineClicked = {
-                    navHostController.navigate(ScreensNav.MedicineDetails.route)
+                onMedicineClicked = {medicine ->
+                    navHostController.navigate(ScreensNav.MedicineDetails.createRoute(medicine.medicineId))
                 },
-                onAisleClicked = {
-                    navHostController.navigate(ScreensNav.AisleDetails.route)
+                onAisleClicked = { aisle ->
+                    navHostController.navigate(ScreensNav.AisleDetails.createRoute(aisle.aisleId))
                 }
 
             )
@@ -51,25 +55,38 @@ fun RebonnteNavHost (
 
         //Medicine details screen
         composable(route = ScreensNav.MedicineDetails.route,
-            arguments = ScreensNav.MedicineDetails.navArguments
+            arguments = ScreensNav.MedicineDetails.navArguments,
+
         ){ backStackEntry ->
             val medicineId = backStackEntry.arguments?.getString("medicineId")
                 ?: throw IllegalArgumentException("Medicine ID is required")
-           // MedicineDetailsScreen(medicineId = medicineId)
+            MedicineDetailScreen(medicineId = medicineId)
         }
 
         //Aisle Details screen
         composable(route = ScreensNav.AisleDetails.route,
-            arguments = ScreensNav.AisleDetails.navArguments
+            arguments = ScreensNav.AisleDetails.navArguments,
+            enterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth })},
+            exitTransition = {slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }) }
         ){backStackEntry ->
             val aisleId = backStackEntry.arguments?.getString("aisleId")
                 ?: throw IllegalArgumentException("Aisle ID is required")
-          //  AisleDetailsScreen(aisleId = aisleId))
+            AisleDetailScreen(
+                aisleId = aisleId,
+                onMedicineClicked = {medicineID ->
+                    navHostController.navigate(ScreensNav.MedicineDetails.createRoute(medicineID))
+                }
+            )
         }
+
 
         //Add medicine screen
         composable(route = ScreensNav.AddMedicine.route){
           //  AddMedicineScreen(onBackClick = { navHostController.popBackStack() })
+        }
+        //Add Aisle screen
+        composable(route = ScreensNav.AddAisle.route){
+            //  AddAisleScreen(onBackClick = { navHostController.popBackStack() })
         }
 
 
@@ -96,8 +113,6 @@ fun RebonnteNavHost (
             exitTransition = {
                 slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }) + fadeOut()
             }
-
-
             ){
             RegisterUserScreen(
                 onNavigateToMainScreen = { navHostController.navigate(ScreensNav.Main.route) },
