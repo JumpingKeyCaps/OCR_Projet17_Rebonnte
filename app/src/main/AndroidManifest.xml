@@ -16,11 +16,6 @@
         <receiver android:name=".MainActivity$MyBroadcastReceiver"
             android:exported="@bool/receiver_exported">
         </receiver>
-        <activity
-            android:name=".ui.medicine.MedicineDetailActivity"
-            android:theme="@style/Theme.Rebonnte.ActionBar"
-            android:parentActivityName=".MainActivity"
-            android:exported="false" />
 
         <activity
             android:name=".MainActivity"
