@@ -8,7 +8,11 @@ data class Medicine(
     val name: String= "",
     val description: String = "",
     val dosage: String = "",
-    val manufacturer: String = "",
+    val fabricant: String = "",
+    val indication: String = "",
+    val principeActif: String = "",
+    val utilisation: String = "",
+    val warning: String = "",
     val createdAt: Long = 0
 
 )
