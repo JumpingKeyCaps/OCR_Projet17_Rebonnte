@@ -1,9 +1,7 @@
 package com.openclassrooms.rebonnte.ui.medicine
 
-import android.content.Context
 import androidx.compose.runtime.Composable
 
-import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,21 +22,26 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.DpOffset
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.openclassrooms.rebonnte.domain.Medicine
+import com.openclassrooms.rebonnte.domain.MedicineWithStock
+import com.openclassrooms.rebonnte.ui.medicine.composition.EmbeddedSearchBar
+import com.openclassrooms.rebonnte.ui.medicine.composition.MedicineWithStockItem
 
+/**
+ * Medicine screen composable function.
+ * @param viewModel ViewModel for medicines.(hilt injected)
+ * @param onBackClick Callback to handle back button click.
+ * @param onMedicineClicked Callback to handle medicine click.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MedicineScreen(
     viewModel: MedicineViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
-    onMedicineClicked: (Medicine) -> Unit
+    onMedicineClicked: (MedicineWithStock) -> Unit
     ) {
-    val medicines by viewModel.medicines.collectAsState(initial = emptyList())
-    val context = LocalContext.current
-
+    val medicinesWithStock by viewModel.medicinesWithStock.collectAsState(initial = emptyList())
     Scaffold(
         topBar = {
             var isSearchActive by rememberSaveable { mutableStateOf(false) }
@@ -92,6 +95,7 @@ fun MedicineScreen(
                     }
                 )
                 EmbeddedSearchBar(
+                    modifier = Modifier.padding(top = 10.dp),
                     query = searchQuery,
                     onQueryChange = {
                         //                     medicineViewModel.filterByName(it)
@@ -101,22 +105,18 @@ fun MedicineScreen(
                     onActiveChanged = { isSearchActive = it }
                 )
             }
-
         }
-
     ){paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues)
         ) {
-            items(medicines, key = { it.medicineId }) { medicine ->
-                MedicineItem(medicine = medicine, onClick = {
-                    onMedicineClicked(medicine)
+            items(medicinesWithStock, key = { it.medicineId }) { medicinesWithStock ->
+                MedicineWithStockItem(medicineWS = medicinesWithStock, onClick = {
+                    onMedicineClicked(medicinesWithStock)
                 })
             }
         }
-
     }
-
 }
 
 

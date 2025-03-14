@@ -1,4 +1,4 @@
-package com.openclassrooms.rebonnte.ui.medicine
+package com.openclassrooms.rebonnte.ui.medicine.composition
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
@@ -26,6 +26,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
+/**
+ * Composable for the embedded search bar.
+ * @param query The current search query.
+ * @param onQueryChange Callback to update the search query.
+ * @param isSearchActive Whether the search is active.
+ * @param onActiveChanged Callback to update the search active state.
+ * @param modifier The modifier for the composable.
+ */
 @Composable
 fun EmbeddedSearchBar(
     query: String,

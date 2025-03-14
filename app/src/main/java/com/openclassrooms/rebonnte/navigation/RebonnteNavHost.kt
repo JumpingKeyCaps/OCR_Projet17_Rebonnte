@@ -15,6 +15,12 @@ import com.openclassrooms.rebonnte.ui.authentication.RegisterUserScreen
 import com.openclassrooms.rebonnte.ui.medicine.detail.MedicineDetailScreen
 import com.openclassrooms.rebonnte.ui.noInternet.NoInternetScreen
 
+/**
+ * Navigation graph for the app.
+ * @param navHostController The navigation controller.
+ * @param startDestination The starting destination.
+ * @param onLogOutAction The action to perform when the user logs out.
+ */
 @Composable
 fun RebonnteNavHost (
     navHostController: NavHostController,
@@ -25,10 +31,8 @@ fun RebonnteNavHost (
         navController = navHostController,
         startDestination = startDestination,
     ) {
-
         //Main screen
         composable(route = ScreensNav.Main.route ){
-            //todo main screen conteneur
             MainScreen(
                 onLogOutAction = {
                     onLogOutAction()
@@ -42,16 +46,14 @@ fun RebonnteNavHost (
                 onAddMedicineAction = {
                     navHostController.navigate(ScreensNav.AddMedicine.route)
                 },
-                onMedicineClicked = {medicine ->
-                    navHostController.navigate(ScreensNav.MedicineDetails.createRoute(medicine.medicineId))
+                onMedicineClicked = {medicineWS ->
+                    navHostController.navigate(ScreensNav.MedicineDetails.createRoute(medicineWS.medicineId))
                 },
                 onAisleClicked = { aisle ->
                     navHostController.navigate(ScreensNav.AisleDetails.createRoute(aisle.aisleId))
                 }
-
             )
         }
-
 
         //Medicine details screen
         composable(route = ScreensNav.MedicineDetails.route,
@@ -79,16 +81,11 @@ fun RebonnteNavHost (
             )
         }
 
-
         //Add medicine screen
-        composable(route = ScreensNav.AddMedicine.route){
-          //  AddMedicineScreen(onBackClick = { navHostController.popBackStack() })
-        }
-        //Add Aisle screen
-        composable(route = ScreensNav.AddAisle.route){
-            //  AddAisleScreen(onBackClick = { navHostController.popBackStack() })
-        }
+        composable(route = ScreensNav.AddMedicine.route){}
 
+        //Add Aisle screen
+        composable(route = ScreensNav.AddAisle.route){}
 
         //Login screen
         composable(route = ScreensNav.SignIn.route){
@@ -124,9 +121,5 @@ fun RebonnteNavHost (
         composable(route = ScreensNav.NoInternet.route){
             NoInternetScreen()
         }
-
-
-
     }
-
 }
