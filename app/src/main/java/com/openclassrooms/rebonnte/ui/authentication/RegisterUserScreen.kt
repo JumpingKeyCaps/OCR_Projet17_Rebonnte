@@ -53,6 +53,9 @@ import com.openclassrooms.rebonnte.ui.theme.Rebonnte_green1
 import com.openclassrooms.rebonnte.ui.theme.Rebonnte_green2
 /**
  * Composable for the registering screen.
+ * @param viewModel The view model for authentication.(hilt injected)
+ * @param onNavigateToMainScreen Callback to navigate to the main screen.
+ * @param onNavigateToLoginScreen Callback to navigate to the login screen.
  **/
 @Composable
 fun RegisterUserScreen(viewModel: AuthenticationViewModel = hiltViewModel(),
@@ -123,7 +126,7 @@ fun RegisterUserScreen(viewModel: AuthenticationViewModel = hiltViewModel(),
             Image(
                 painter = painterResource(id = R.drawable.signupdoodleb),
                 contentDescription = "Illustration d'inscription",
-                modifier = Modifier.size(220.dp)
+                modifier = Modifier.size(200.dp).align(Alignment.CenterHorizontally)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
@@ -228,7 +231,9 @@ fun RegisterUserScreen(viewModel: AuthenticationViewModel = hiltViewModel(),
             Spacer(modifier = Modifier.height(8.dp))
 
             Row {
-                Text("Already have an account? ", color = Color.Gray)
+                Text("Already have an account? ",
+                    color = Color.Gray,
+                    modifier = Modifier.align(Alignment.CenterVertically).padding(end = 2.dp))
                 TextButton(onClick = { onNavigateToLoginScreen() }) {
                     Text("Sign In!", fontWeight = FontWeight.Bold, color = Rebonnte_green1)
                 }
