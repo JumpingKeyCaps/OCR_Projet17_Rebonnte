@@ -31,7 +31,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.openclassrooms.rebonnte.domain.Aisle
-import com.openclassrooms.rebonnte.domain.Medicine
+import com.openclassrooms.rebonnte.domain.MedicineWithStock
 import com.openclassrooms.rebonnte.navigation.ScreensNav
 import com.openclassrooms.rebonnte.ui.aisle.AisleScreen
 
@@ -42,12 +42,11 @@ import com.openclassrooms.rebonnte.ui.medicine.MedicineScreen
  *  - Manages the inner navigation graph for the Aisle and Medicine screens.
  *  - Manages the bottom navigation bar.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     onLogOutAction: () -> Unit,
     onAddMedicineAction: () -> Unit,
-    onMedicineClicked: (Medicine) -> Unit,
+    onMedicineClicked: (MedicineWithStock) -> Unit,
     onAisleClicked: (Aisle) -> Unit
 ) {
 
@@ -89,12 +88,19 @@ fun MainScreen(
 
 }
 
-
+/**
+ * Inner navigation graph composable function.
+ * @param navController Navigation controller for the inner graph.
+ * @param startDestination Start destination route for the inner graph.
+ * @param onMedicineClicked Callback for when a medicine is clicked.
+ * @param onAisleClicked Callback for when an aisle is clicked.
+ * @param onLogOutAction Callback for when the user logs out.
+ */
 @Composable
 fun InnerNavigationGraph(
     navController: NavHostController,
     startDestination: String,
-    onMedicineClicked: (Medicine) -> Unit,
+    onMedicineClicked: (MedicineWithStock) -> Unit,
     onAisleClicked: (Aisle) -> Unit,
     onLogOutAction: () -> Unit ){
 
@@ -123,7 +129,11 @@ fun InnerNavigationGraph(
 }
 
 
-
+/**
+ * Bottom navigation bar composable function.
+ * @param currentRoute Current route of the navigation graph.
+ * @param navController Navigation controller for the bottom navigation bar.
+ */
 @Composable
 fun BottomNavigationBar(currentRoute: String?, navController: NavHostController) {
     NavigationBar {
