@@ -79,7 +79,8 @@ fun RebonnteNavHost (
                 aisleId = aisleId,
                 onMedicineClicked = {medicineID ->
                     navHostController.navigate(ScreensNav.MedicineDetails.createRoute(medicineID))
-                }
+                },
+                onBackClick = { navHostController.popBackStack() }
             )
         }
 
