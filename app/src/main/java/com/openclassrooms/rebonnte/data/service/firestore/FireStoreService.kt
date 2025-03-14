@@ -4,12 +4,15 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.openclassrooms.rebonnte.domain.Aisle
 import com.openclassrooms.rebonnte.domain.Medicine
+import com.openclassrooms.rebonnte.domain.MedicineWithStock
 import com.openclassrooms.rebonnte.domain.Stock
 import com.openclassrooms.rebonnte.domain.StockHistory
 import com.openclassrooms.rebonnte.domain.User
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
@@ -20,7 +23,7 @@ import java.util.Locale
  * Service to interact with FireStore (DataBase).
  */
 class FireStoreService {
-    private val db = FirebaseFirestore.getInstance()
+    private val db = FirebaseFirestore.getInstance("rebonnte")
 
 
     //Aisles ------------------------------------------------------------------------<
@@ -104,7 +107,6 @@ class FireStoreService {
         // Clean up the listener when the flow is cancelled
         awaitClose { listener.remove() }
     }
-
 
     /**
      * Fetches a single aisle from the Firestore collection by its aisleId.
@@ -251,7 +253,6 @@ class FireStoreService {
         awaitClose { listener.remove() }
     }
 
-
     /**
      * Fetches a single medicine from the Firestore collection by its medicineID.
      * @param medicineId The ID of the medicine to fetch.
@@ -275,6 +276,47 @@ class FireStoreService {
         }
     }
 
+    /**
+     * Get all medicines for a specific aisle.
+     * @param aisleId The ID of the aisle.
+     * @return A Flow emitting a list of medicines that will emit new values when the data changes.
+     */
+    fun fetchMedicinesForAisle(aisleId: String): Flow<List<MedicineWithStock>> = flow {
+        // 1. Récupérer tous les stocks pour ce rayon
+        val stockSnapshot = db.collection("stock")
+            .whereEqualTo("aisleId", aisleId)
+            .get()
+            .await() // Utilise `await` pour attendre le résultat de la requête
+
+        // 2. Pour chaque stock, récupérer le médicament correspondant
+        val medicinesWithStock = stockSnapshot.documents.mapNotNull { stockDoc ->
+            val stock = stockDoc.toObject(Stock::class.java)
+            stock?.let {
+                // 3. Récupérer le médicament associé au stock
+                val medicine = fetchMedicineById(it.medicineId)
+                medicine?.let {it->
+                    // 4. Créer un objet `MedicineWithStock`
+                    MedicineWithStock(
+                        medicineId = it.medicineId,
+                        name = it.name,
+                        description = it.description,
+                        dosage = it.dosage,
+                        fabricant = it.fabricant,
+                        indication = it.indication,
+                        principeActif = it.principeActif,
+                        utilisation = it.utilisation,
+                        warning = it.warning,
+                        createdAt = it.createdAt,
+                        quantity = stock.quantity)
+
+
+                }
+            }
+        }
+
+        // 5. Retourner la liste des `MedicineWithStock`
+        emit(medicinesWithStock)
+    }
 
     /**
      * Fetches medicines based on the search query in real-time.
@@ -349,8 +391,20 @@ class FireStoreService {
         }
     }
 
-
-    suspend fun updateQuantityInStock(medicineId: String, quantityDelta: Int, author: String, description: String): Boolean {
+    /**
+     * Updates the quantity of a stock entry for a given medicineId.
+     * @param medicineId The ID of the medicine to update.
+     * @param quantityDelta The change in quantity to apply to the stock entry.
+     * @param author The author of the update.
+     * @param description A description of the update.
+     * @return True if the operation is successful, false otherwise.
+     */
+    suspend fun updateQuantityInStock(
+        medicineId: String,
+        quantityDelta: Int,
+        author: String,
+        description: String
+    ): Boolean {
         return try {
             // Recherche de l'entrée de stock correspondante au medicineId
             val stockDocs = db.collection("stock")
@@ -363,8 +417,9 @@ class FireStoreService {
                 return false
             }
 
-            // Récupération des informations du médicament pour l'historique
-            val medicineName = stockDocs.documents.firstOrNull()?.getString("medicineName") ?: "Unknown"
+            // Récupération du nom du médicament depuis la collection "medicine"
+            val medicineDoc = db.collection("medicines").document(medicineId).get().await()
+            val medicineName = medicineDoc.getString("name") ?: "Unknown"  // Utilise "name" pour récupérer le nom du médicament
 
             // Mise à jour de la quantité pour chaque document trouvé dans "stock"
             stockDocs.documents.forEach { stockDoc ->
@@ -388,7 +443,7 @@ class FireStoreService {
                     time = getCurrentTime(),
                     medicineId = medicineId,
                     medicineName = medicineName,
-                    quantity = quantityDelta.toLong(),
+                    quantity = quantityDelta,
                     action = if (quantityDelta > 0) "ADD" else "REMOVE",  // Action selon le delta
                     description = description,
                     author = author
@@ -405,12 +460,74 @@ class FireStoreService {
         }
     }
 
+    /**
+     * Retrieves the stock quantity for a given medicineId.
+     * @param medicineId The ID of the medicine to retrieve the stock for.
+     * @return The stock quantity for the given medicineId, or null if no stock entry is found or an error occurs.
+     */
+    suspend fun getStockQuantity(medicineId: String): Int? {
+        return try {
+            // Recherche de l'entrée de stock correspondante au medicineId
+            val stockDocs = db.collection("stock")
+                .whereEqualTo("medicineId", medicineId)
+                .get()
+                .await()
+
+            if (stockDocs.isEmpty) {
+                // Si aucun stock n'est trouvé pour ce medicineId, retourner null
+                null
+            } else {
+                // Récupérer la quantité du premier document trouvé
+                stockDocs.documents.firstOrNull()?.getLong("quantity")?.toInt() ?: 0
+            }
+        } catch (e: Exception) {
+            // En cas d'erreur, retourner null
+            null
+        }
+    }
+
+    /**
+     * Retrieves the aisleId for a given medicineId.
+     * @param medicineId The ID of the medicine to retrieve the aisleId for.
+     * @return The aisleId for the given medicineId, or null if no aisleId is found.
+     */
+    @OptIn(DelicateCoroutinesApi::class)
+    fun getMedicineAisle(medicineId: String): Flow<String?> = callbackFlow {
+        val query = db.collection("stock")
+            .whereEqualTo("medicineId", medicineId)
+            .limit(1)
+
+        val listener = query.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error) // Fermeture propre en cas d'erreur
+                return@addSnapshotListener
+            }
+
+            val aisleId = snapshot?.documents?.firstOrNull()?.getString("aisleId")
+
+            if (!isClosedForSend) { // Vérifie si le Flow est encore actif
+                trySend(aisleId).isSuccess
+            }
+        }
+
+        awaitClose { listener.remove() }
+    }.catch { emit(null) } // Gestion des erreurs sans casser le Flow
+
+
+    /**
+     * Get the current date in the format "dd-MM-yyyy".
+     * @return The current date as a string.
+     */
     private fun getCurrentDate(): String {
         // Retourne la date actuelle au format souhaité (par exemple : "20-04-2025")
         val dateFormatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         return dateFormatter.format(Date())
     }
 
+    /**
+     * Get the current time in the format "HH:mm:ss".
+     * @return The current time as a string.
+     */
     private fun getCurrentTime(): String {
         // Retourne l'heure actuelle au format souhaité (par exemple : "12:34:03")
         val timeFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
@@ -419,7 +536,11 @@ class FireStoreService {
 
     //History ------------------------------------------------------------------------<
 
-
+    /**
+     * Get the history for a specific medicine.
+     * @param medicineId The ID of the medicine.
+     * @return A Flow emitting a list of stock history entries.
+     */
     fun getHistoryForMedicine(medicineId: String): Flow<List<StockHistory>> = callbackFlow {
         val listenerRegistration = db.collection("history")
             .whereEqualTo("medicineId", medicineId)
@@ -446,7 +567,10 @@ class FireStoreService {
         }
     }
 
-
+    /**
+     * Get all history.
+     * @return A Flow emitting a list of stock history entries.
+     */
     fun getAllHistory(): Flow<List<StockHistory>> = callbackFlow {
         val listenerRegistration = db.collection("history")
             .orderBy("date", Query.Direction.DESCENDING)  // Trie par date, du plus récent au plus ancien
@@ -476,8 +600,9 @@ class FireStoreService {
     //User profile ------------------------------------------------------------------------<
 
     /**
-     * Ajoute un utilisateur à la collection "users" dans Firestore.
-     * L'ID est auto-généré par Firestore et ajouté à l'objet User.
+     * Add a new user to the Firestore collection.
+     * @param user The user to add.
+     * @return The ID of the added user, or null if an error occurred.
      */
     suspend fun addUser(user: User): String? {
         return try {
@@ -504,7 +629,9 @@ class FireStoreService {
     }
 
     /**
-     * Supprime un utilisateur de la collection "users" dans Firestore.
+     * Delete a user from the Firestore collection.
+     * @param userId The ID of the user to delete.
+     * @return True if the deletion was successful, false otherwise.
      */
     suspend fun deleteUser(userId: String): Boolean {
         return try {
@@ -522,7 +649,9 @@ class FireStoreService {
 
 
     /**
-     * Récupère un utilisateur à partir de son email depuis la collection "users".
+     * Get a user by their ID.
+     * @param userId The ID of the user to retrieve.
+     * @return A Flow emitting the user object or null if not found.
      */
     fun getUserById(userId: String) = flow {
         try {
