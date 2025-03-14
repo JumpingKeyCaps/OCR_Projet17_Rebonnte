@@ -58,6 +58,8 @@ fun RebonnteNavHost (
         //Medicine details screen
         composable(route = ScreensNav.MedicineDetails.route,
             arguments = ScreensNav.MedicineDetails.navArguments,
+            enterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }) + fadeIn() },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }) + fadeOut() }
 
         ){ backStackEntry ->
             val medicineId = backStackEntry.arguments?.getString("medicineId")
@@ -68,8 +70,8 @@ fun RebonnteNavHost (
         //Aisle Details screen
         composable(route = ScreensNav.AisleDetails.route,
             arguments = ScreensNav.AisleDetails.navArguments,
-            enterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth })},
-            exitTransition = {slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }) }
+            enterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }) + fadeIn() },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }) + fadeOut() }
         ){backStackEntry ->
             val aisleId = backStackEntry.arguments?.getString("aisleId")
                 ?: throw IllegalArgumentException("Aisle ID is required")

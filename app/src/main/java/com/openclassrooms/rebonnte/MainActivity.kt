@@ -16,6 +16,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -128,7 +129,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-       // startBroadcastReceiver()  //crazy loop
+      //  startBroadcastReceiver()  //crazy loop
     }
 
 
@@ -168,14 +169,14 @@ class MainActivity : ComponentActivity() {
         }
 
         Handler().postDelayed({
-            startMyBroadcast()
-        }, 200)
+           // startMyBroadcast()
+        }, 20)
     }
 
 
     class MyBroadcastReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-          //  Toast.makeText(mainActivity, "Update reçu", Toast.LENGTH_SHORT).show()
+            Toast.makeText(mainActivity, "Update reçu", Toast.LENGTH_SHORT).show()
         }
     }
 
