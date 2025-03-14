@@ -56,6 +56,12 @@ class AisleDetailViewModel @Inject constructor(
         }
     }
 
-
+    // Fonction pour supprimer un rayon
+    fun deleteAisle(aisleId: String) {
+        viewModelScope.launch {
+            val success = aisleRepository.deleteAisle(aisleId)
+            if (success) { }
+        }
+    }
 
 }
