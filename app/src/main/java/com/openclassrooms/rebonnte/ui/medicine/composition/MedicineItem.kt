@@ -1,4 +1,4 @@
-package com.openclassrooms.rebonnte.ui.medicine
+package com.openclassrooms.rebonnte.ui.medicine.composition
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +17,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.openclassrooms.rebonnte.domain.Medicine
 
+/**
+ * Composable for displaying a medicine item.
+ * @param medicine The medicine to display.
+ * @param onClick Callback to handle item click.
+ */
 @Composable
 fun MedicineItem(medicine: Medicine, onClick: (String) -> Unit) {
     Row(
@@ -28,7 +33,7 @@ fun MedicineItem(medicine: Medicine, onClick: (String) -> Unit) {
     ) {
         Column {
             Text(text = medicine.name, fontWeight = FontWeight.Bold)
-            Text(text = "Dosage: ${medicine.dosage}", color = Color.Gray)
+            Text(text = " ${medicine.fabricant}", color = Color.Gray)
         }
         Icon(imageVector = Icons.Default.KeyboardArrowRight, contentDescription = "Arrow")
     }
