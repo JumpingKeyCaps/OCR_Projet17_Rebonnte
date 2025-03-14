@@ -25,5 +25,13 @@ val navArguments: List<NamedNavArgument> = emptyList()
 
     data object AddMedicine : ScreensNav("addMedicine")
 
+    data object AddAisle : ScreensNav("addAisle")
+
+    data object Medicines : ScreensNav("medicines")
+
+    data object Aisles : ScreensNav("aisles")
+
+
+
 
 }

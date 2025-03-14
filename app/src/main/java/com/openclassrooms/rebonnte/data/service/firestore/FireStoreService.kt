@@ -5,231 +5,221 @@ import com.google.firebase.firestore.Query
 import com.openclassrooms.rebonnte.domain.Aisle
 import com.openclassrooms.rebonnte.domain.Medicine
 import com.openclassrooms.rebonnte.domain.MedicineWithStock
+import com.openclassrooms.rebonnte.domain.Stock
 import com.openclassrooms.rebonnte.domain.StockHistory
 import com.openclassrooms.rebonnte.domain.User
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * Service to interact with FireStore (DataBase).
  */
 class FireStoreService {
-    private val db = FirebaseFirestore.getInstance()
+    private val db = FirebaseFirestore.getInstance("rebonnte")
 
 
-    //Aisle (shop) ------------------------------------------------------------------------<
-
+    //Aisles ------------------------------------------------------------------------<
     /**
-     * Ajoute un magasin avec tous les médicaments initialisés à 0 en stock.
+     * Adds a new aisle to the Firestore collection.
+     * Automatically sets the aisleId and createdAt timestamp.
+     * Checks if an aisle with the same name already exists.
+     * @param name The name of the aisle.
+     * @param description The description of the aisle.
+     * @return True if the operation is successful, false otherwise.
      */
-    suspend fun addAisleWithStock(aisleName: String, location: String, description: String): String? {
+    suspend fun addAisle(name: String, description: String): Boolean {
         return try {
-            val aisleRef = db.collection("Aisle").document()
-            val aisleId = aisleRef.id
+            // Vérifier si un rayon avec le même nom existe déjà
+            val querySnapshot = db.collection("Aisle")
+                .whereEqualTo("name", name)
+                .get()
+                .await()
 
-            // le magasin
-            aisleRef.set(
-                mapOf(
-                    "aisleId" to aisleId,
-                    "name" to aisleName,
-                    "location" to location,
-                    "description" to description,
-                    "createdAt" to System.currentTimeMillis()
+            // Si un rayon avec le même nom existe déjà, retourner false
+            if (querySnapshot.isEmpty) {
+                // Si aucun rayon avec ce nom, ajouter le nouveau rayon
+                val docRef = db.collection("Aisle").document()
+                val aisle = Aisle(
+                    aisleId = docRef.id,
+                    name = name,
+                    description = description,
+                    createdAt = System.currentTimeMillis()
                 )
-            ).await()
-
-            // Récupérer tous les médicaments
-            val medicinesSnapshot = db.collection("medicines").get().await()
-
-            // Ajouter chaque médicament dans le stock du magasin
-            for (document in medicinesSnapshot.documents) {
-                val medicineId = document.id
-                aisleRef.collection("medicines").document(medicineId).set(
-                    mapOf(
-                        "medicineId" to medicineId,
-                        "quantity" to 0,
-                        "lastUpdate" to System.currentTimeMillis()
-                    )
-                ).await()
+                docRef.set(aisle).await()
+                true
+            } else {
+                // Rayon avec le même nom existe déjà
+                false
             }
-
-            aisleId
         } catch (e: Exception) {
-            null
+            false
         }
     }
 
 
     /**
-     * Récupère tous les magasins (aisles) sous forme d'un Flow<List<Aisle>>.
+     * Deletes an aisle from the Firestore collection by its aisleId.
+     * @param aisleId The ID of the aisle to delete.
+     * @return True if the operation is successful, false otherwise.
      */
-    fun fetchAllAisles(): Flow<List<Aisle>> = flow {
-        try {
-            // Récupérer tous les magasins de la collection "Aisle"
-            val querySnapshot = db.collection("Aisle").get().await()
-
-            // Transformer les documents en objets Aisle
-            val aisles = querySnapshot.documents.mapNotNull { document ->
-                val aisleId = document.getString("aisleId")
-                val name = document.getString("name")
-                val location = document.getString("location")
-                val description = document.getString("description")
-                val createdAt = document.getLong("createdAt") ?: 0L
-
-                if (aisleId!=null && name != null && location != null && description != null) {
-                    Aisle(aisleId,name, location, description, createdAt)
-                } else {
-                    null // Ignore les documents mal formatés
-                }
-            }
-
-            // Émettre la liste des magasins
-            emit(aisles)
-        } catch (e: Exception) {
-            emit(emptyList()) // En cas d'erreur, émettre une liste vide
-        }
-    }
-
-    /**
-     * Récupère la liste des magasins qui ont un médicament en stock.
-     * Retourne un Flow<List<Aisle>> contenant les informations des magasins.
-     */
-    fun getAislesWithMedicine(medicineId: String) = flow {
-        try {
-
-            // Récupérer les documents des magasins qui ont le médicament en stock
-            val querySnapshot = db.collectionGroup("medicines")
-                .whereEqualTo("medicineId", medicineId)
-                .whereGreaterThan("quantity", 0)
-                .get()
-                .await()
-
-            // Transformer les documents récupérés en objets Aisle (magasins)
-            val aisles = querySnapshot.documents.mapNotNull { document ->
-                val aisleRef = document.reference.parent.parent
-                aisleRef?.let {
-                    // Récupérer le document du magasin
-                    val aisleSnapshot = it.get().await()
-
-                    Aisle(
-                        aisleId = aisleSnapshot.id, // L'ID du magasin
-                        name = aisleSnapshot.getString("name") ?: "Unknown",
-                        location = aisleSnapshot.getString("location") ?: "Unknown",
-                        description = aisleSnapshot.getString("description") ?: "No description",
-                        createdAt = aisleSnapshot.getLong("createdAt") ?: 0L
-                    )
-                }
-            }
-
-            // Émettre la liste des magasins qui ont un stock du médicament
-            emit(aisles)
-        } catch (e: Exception) {
-            // En cas d'erreur, émettre une liste vide
-            emit(emptyList<Aisle>())
-        }
-    }
-
-    /**
-     * Récupère tous les médicaments d'un magasin sous forme d'un Flow<List<MedicineWithStock>>.
-     * Les informations des médicaments et de gestion des stocks sont combinées.
-     */
-    fun fetchMedicinesInAisle(aisleId: String): Flow<List<MedicineWithStock>> = flow {
-        try {
-            // Récupérer tous les médicaments dans la sous-collection "medicines" d'un magasin
-            val querySnapshot = db.collection("aisle")
+    suspend fun deleteAisle(aisleId: String): Boolean {
+        return try {
+            db.collection("Aisle")
                 .document(aisleId)
-                .collection("medicines")
-                .get()
+                .delete()
                 .await()
-
-            // Récupérer les détails des médicaments depuis la collection "medicines" avec l'ID du médicament
-            val medicinesWithStock = querySnapshot.documents.mapNotNull { document ->
-                val medicineId = document.getString("medicineId") // ID du médicament
-                val quantity = document.getString("quantity")?.toIntOrNull() ?: 0 // Quantité du médicament
-                val lastUpdate = document.getString("lastUpdate") ?: "Unknown" // Date de dernière mise à jour
-
-                // Vérifier que l'ID du médicament est valide
-                if (medicineId != null) {
-                    // Récupérer les détails du médicament à partir de la collection principale "medicines"
-                    val medicineSnapshot = db.collection("medicines")
-                        .document(medicineId)
-                        .get()
-                        .await()
-
-                    val name = medicineSnapshot.getString("name")
-                    val description = medicineSnapshot.getString("description")
-                    val dosage = medicineSnapshot.getString("dosage")
-                    val manufacturer = medicineSnapshot.getString("manufacturer")
-                    val createdAt = medicineSnapshot.getLong("createdAt") ?: 0L
-
-                    // Créer un objet MedicineWithStock si tous les détails sont valides
-                    if (name != null && description != null && dosage != null && manufacturer != null) {
-                        MedicineWithStock(
-                            medicineId = medicineId,
-                            name = name,
-                            description = description,
-                            dosage = dosage,
-                            manufacturer = manufacturer,
-                            createdAt = createdAt,
-                            quantity = quantity,
-                            lastUpdate = lastUpdate
-                        )
-                    } else {
-                        null // Ignore les médicaments sans informations complètes
-                    }
-                } else {
-                    null // Ignore les documents mal formatés sans ID de médicament
-                }
-            }
-
-            // Émettre la liste des médicaments avec leurs informations de stock
-            emit(medicinesWithStock)
+            true
         } catch (e: Exception) {
-            emit(emptyList()) // Si une erreur survient, émettre une liste vide
+            false
         }
     }
 
-    //Stock/history ------------------------------------------------------------------------<
 
     /**
-     * Met à jour le stock d'un médicament dans un magasin et ajoute une entrée dans l'historique.
+     * Fetches all aisles from the Firestore collection.
+     * Returns a Flow of a list of aisles that will emit new values when the data changes.
+     * @return A Flow emitting a list of aisles.
      */
-    suspend fun updateStock(
-        aisleId: String,
-        medicineId: String,
-        quantityChange: Int,
-        reason: String,
-        userEmail: String
+    fun fetchAllAisles(): Flow<List<Aisle?>> = callbackFlow {
+        val listener = db.collection("Aisle")
+            .addSnapshotListener { snapshot, exception ->
+                if (exception != null) {
+                    close(exception) // If there's an error, close the flow with the exception
+                    return@addSnapshotListener
+                }
+
+                // If snapshot is not null, convert it to a list of Aisle objects
+                val aisles = snapshot?.documents?.map { doc ->
+                    doc.toObject(Aisle::class.java)?.copy(aisleId = doc.id) // Mapping to Aisle
+                } ?: emptyList()
+
+                trySend(aisles) // Emit the list of aisles to the flow
+            }
+
+        // Clean up the listener when the flow is cancelled
+        awaitClose { listener.remove() }
+    }
+
+    /**
+     * Fetches a single aisle from the Firestore collection by its aisleId.
+     * @param aisleId The ID of the aisle to fetch.
+     * @return The Aisle object if found, or null if not found.
+     */
+    suspend fun fetchAisleById(aisleId: String): Aisle? {
+        return try {
+            val documentSnapshot = db.collection("Aisle")
+                .document(aisleId)
+                .get()
+                .await()
+
+            // Check if document exists, if yes, return the Aisle object
+            if (documentSnapshot.exists()) {
+                documentSnapshot.toObject(Aisle::class.java)?.copy(aisleId = documentSnapshot.id)
+            } else {
+                null // Return null if the aisle doesn't exist
+            }
+        } catch (e: Exception) {
+            null // Return null in case of any error (can be handled in the ViewModel)
+        }
+    }
+
+
+
+    //Medicines ------------------------------------------------------------------------<
+
+    /**
+     * Adds a new medicine to the Firestore collection.
+     * Automatically sets the medicineID and createdAt timestamp.
+     * Checks if a medicine with the same name already exists.
+     * Creates a default entry in the 'stock' collection with a default aisleId and quantity = 0.
+     * @param name The name of the medicine.
+     * @param dosage The dosage instructions for the medicine.
+     * @param fabricant The manufacturer of the medicine.
+     * @param indication The indication for the use of the medicine.
+     * @param principeActif The active ingredient of the medicine.
+     * @param utilisation The usage instructions for the medicine.
+     * @param warning Any warning for the use of the medicine.
+     * @return True if the operation is successful, false otherwise.
+     */
+    suspend fun addMedicine(
+        name: String,
+        dosage: String,
+        fabricant: String,
+        indication: String,
+        principeActif: String,
+        utilisation: String,
+        warning: String
     ): Boolean {
         return try {
-            val aisleRef = db.collection("Aisle").document(aisleId)
-            val medicineRef = aisleRef.collection("medicines").document(medicineId)
+            // Vérifier si un médicament avec le même nom existe déjà
+            val querySnapshot = db.collection("medicines")
+                .whereEqualTo("name", name)
+                .get()
+                .await()
 
-            val snapshot = medicineRef.get().await()
-            val currentQuantity = snapshot.getLong("quantity") ?: 0
-
-            val newQuantity = (currentQuantity + quantityChange).coerceAtLeast(0)
-
-            // Mettre à jour le stock
-            medicineRef.update(
-                mapOf(
-                    "quantity" to newQuantity,
-                    "lastUpdate" to System.currentTimeMillis()
+            // Si un médicament avec le même nom existe déjà, retourner false
+            if (querySnapshot.isEmpty) {
+                // Si aucun médicament avec ce nom, ajouter le nouveau médicament
+                val docRef = db.collection("medicines").document()
+                val medicine = Medicine(
+                    medicineId = docRef.id,
+                    name = name,
+                    dosage = dosage,
+                    fabricant = fabricant,
+                    indication = indication,
+                    principeActif = principeActif,
+                    utilisation = utilisation,
+                    warning = warning,
+                    createdAt = System.currentTimeMillis()
                 )
-            ).await()
+                docRef.set(medicine).await()
 
-            // Ajouter une entrée dans l'historique
-            aisleRef.collection("stockHistory").add(
-                mapOf(
-                    "date" to System.currentTimeMillis(),
-                    "medicineId" to medicineId,
-                    "quantity" to quantityChange,
-                    "reason" to reason,
-                    "type" to if (quantityChange > 0) "add" else "remove",
-                    "updateBy" to userEmail
+                // Créer une entrée dans la collection 'stock' avec un modèle dédié
+                val stock = Stock(
+                    medicineId = docRef.id,
+                    aisleId = "0phZ52jwfLfhd7ri8PqH" // Aisle ID par défaut
                 )
-            ).await()
+                db.collection("stock").add(stock).await()
+
+                true
+            } else {
+                // Médicament avec le même nom existe déjà
+                false
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+
+    /**
+     * Deletes a medicine from the Firestore collection by its medicineID.
+     * Also deletes the corresponding entry in the 'stock' collection.
+     * @param medicineId The ID of the medicine to delete.
+     * @return True if the operation is successful, false otherwise.
+     */
+    suspend fun deleteMedicine(medicineId: String): Boolean {
+        return try {
+            // Supprimer le médicament de la collection "medicines"
+            db.collection("medicines").document(medicineId).delete().await()
+
+            // Supprimer l'entrée correspondante dans la collection "stock"
+            db.collection("stock")
+                .whereEqualTo("medicineId", medicineId)
+                .get()
+                .await()
+                .documents
+                .forEach { stockDoc ->
+                    db.collection("stock").document(stockDoc.id).delete().await()
+                }
 
             true
         } catch (e: Exception) {
@@ -238,239 +228,381 @@ class FireStoreService {
     }
 
     /**
-     * Récupère le stock total d'un médicament sur tous les magasins.
+     * Fetches all medicines from the Firestore collection.
+     * Returns a Flow of a list of medicines that will emit new values when the data changes.
+     * @return A Flow emitting a list of medicines.
      */
-    suspend fun getTotalStock(medicineId: String): Long {
+    fun fetchAllMedicines(sortDsc: Boolean): Flow<List<Medicine?>> = callbackFlow {
+        val listener = db.collection("medicines")
+            .orderBy("name", if (sortDsc) Query.Direction.DESCENDING else Query.Direction.ASCENDING)
+            .addSnapshotListener { snapshot, exception ->
+                if (exception != null) {
+                    close(exception) // If there's an error, close the flow with the exception
+                    return@addSnapshotListener
+                }
+
+                // If snapshot is not null, convert it to a list of Medicine objects
+                val medicines = snapshot?.documents?.map { doc ->
+                    doc.toObject(Medicine::class.java)?.copy(medicineId = doc.id) // Mapping to Medicine
+                } ?: emptyList()
+
+                trySend(medicines) // Emit the list of medicines to the flow
+            }
+
+        // Clean up the listener when the flow is cancelled
+        awaitClose { listener.remove() }
+    }
+
+    /**
+     * Fetches a single medicine from the Firestore collection by its medicineID.
+     * @param medicineId The ID of the medicine to fetch.
+     * @return The Medicine object if found, or null if not found.
+     */
+    suspend fun fetchMedicineById(medicineId: String): Medicine? {
         return try {
-            val querySnapshot = db.collectionGroup("medicines")
+            val documentSnapshot = db.collection("medicines")
+                .document(medicineId)
+                .get()
+                .await()
+
+            // Check if document exists, if yes, return the Medicine object
+            if (documentSnapshot.exists()) {
+                documentSnapshot.toObject(Medicine::class.java)?.copy(medicineId = documentSnapshot.id)
+            } else {
+                null // Return null if the medicine doesn't exist
+            }
+        } catch (e: Exception) {
+            null // Return null in case of any error (can be handled in the ViewModel)
+        }
+    }
+
+    /**
+     * Get all medicines for a specific aisle.
+     * @param aisleId The ID of the aisle.
+     * @return A Flow emitting a list of medicines that will emit new values when the data changes.
+     */
+    fun fetchMedicinesForAisle(aisleId: String): Flow<List<MedicineWithStock>> = flow {
+        // 1. Récupérer tous les stocks pour ce rayon
+        val stockSnapshot = db.collection("stock")
+            .whereEqualTo("aisleId", aisleId)
+            .get()
+            .await() // Utilise `await` pour attendre le résultat de la requête
+
+        // 2. Pour chaque stock, récupérer le médicament correspondant
+        val medicinesWithStock = stockSnapshot.documents.mapNotNull { stockDoc ->
+            val stock = stockDoc.toObject(Stock::class.java)
+            stock?.let {
+                // 3. Récupérer le médicament associé au stock
+                val medicine = fetchMedicineById(it.medicineId)
+                medicine?.let {it->
+                    // 4. Créer un objet `MedicineWithStock`
+                    MedicineWithStock(
+                        medicineId = it.medicineId,
+                        name = it.name,
+                        description = it.description,
+                        dosage = it.dosage,
+                        fabricant = it.fabricant,
+                        indication = it.indication,
+                        principeActif = it.principeActif,
+                        utilisation = it.utilisation,
+                        warning = it.warning,
+                        createdAt = it.createdAt,
+                        quantity = stock.quantity)
+
+
+                }
+            }
+        }
+
+        // 5. Retourner la liste des `MedicineWithStock`
+        emit(medicinesWithStock)
+    }
+
+    /**
+     * Fetches medicines based on the search query in real-time.
+     * Returns a Flow of a list of medicines that will emit new values when the data changes.
+     * @param searchQuery The search text entered by the user.
+     * @return A Flow emitting a list of medicines that match the search query.
+     */
+    fun searchMedicinesRealTime(searchQuery: String): Flow<List<Medicine?>> = callbackFlow {
+        // Si le texte est vide, on retourne une liste vide
+        if (searchQuery.isEmpty()) {
+            trySend(emptyList())
+            return@callbackFlow
+        }
+
+        val listener = db.collection("medicines")
+            .orderBy("name") // Assurez-vous que le champ "name" est indexé dans Firestore
+            .startAt(searchQuery)
+            .endAt(searchQuery + "\uf8ff") // Utilisation de "\uf8ff" pour filtrer tous les noms qui commencent par searchQuery
+            .addSnapshotListener { snapshot, exception ->
+                if (exception != null) {
+                    close(exception) // Si une erreur se produit, on ferme le flux
+                    return@addSnapshotListener
+                }
+
+                // Si le snapshot est valide, on mappe les documents en objets Medicine
+                val medicines = snapshot?.documents?.map { doc ->
+                    doc.toObject(Medicine::class.java)?.copy(medicineId = doc.id) // Mapping to Medicine
+                } ?: emptyList()
+
+                trySend(medicines) // On envoie la liste de médicaments dans le flux
+            }
+
+        // Nettoyer le listener lorsque le flux est annulé
+        awaitClose { listener.remove() }
+    }
+
+
+    //Stock ------------------------------------------------------------------------<
+
+    /**
+     * Updates the aisleId of a stock entry for a given medicineId.
+     * @param medicineId The ID of the medicine to update.
+     * @param newAisleId The new aisleId to set for the stock entry.
+     * @return True if the operation is successful, false otherwise.
+     */
+    suspend fun updateMedicineAisle(medicineId: String, newAisleId: String): Boolean {
+        return try {
+            // Recherche de l'entrée de stock correspondante au medicineId
+            val stockDocs = db.collection("stock")
                 .whereEqualTo("medicineId", medicineId)
                 .get()
                 .await()
 
-            querySnapshot.documents.sumOf { it.getLong("quantity") ?: 0 }
+            if (stockDocs.isEmpty) {
+                // Si aucun stock n'est trouvé pour ce medicineId, retour false
+                return false
+            }
+
+            // Mettre à jour l'aisleId pour chaque document trouvé dans "stock"
+            stockDocs.documents.forEach { stockDoc ->
+                val updatedStock = mapOf(
+                    "aisleId" to newAisleId // Mise à jour du aisleId
+                )
+
+                // Mise à jour du document stock
+                db.collection("stock").document(stockDoc.id).update(updatedStock).await()
+            }
+
+            true
         } catch (e: Exception) {
-            0
+            false
         }
     }
 
-
     /**
-     * Récupère l'historique du stock pour un magasin spécifique.
-     * L'historique est trié par date.
+     * Updates the quantity of a stock entry for a given medicineId.
+     * @param medicineId The ID of the medicine to update.
+     * @param quantityDelta The change in quantity to apply to the stock entry.
+     * @param author The author of the update.
+     * @param description A description of the update.
+     * @return True if the operation is successful, false otherwise.
      */
-    fun getStockHistoryByAisle(aisleId: String) = flow {
-        try {
-            val db = FirebaseFirestore.getInstance()
-
-            // Récupérer l'historique du stock pour le magasin (Aisle) donné
-            val querySnapshot = db.collection("Aisle")
-                .document(aisleId)
-                .collection("stockHistory")
-                .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
+    suspend fun updateQuantityInStock(
+        medicineId: String,
+        quantityDelta: Int,
+        author: String,
+        description: String
+    ): Boolean {
+        return try {
+            // Recherche de l'entrée de stock correspondante au medicineId
+            val stockDocs = db.collection("stock")
+                .whereEqualTo("medicineId", medicineId)
                 .get()
                 .await()
 
-            // Transformer les documents récupérés en une liste d'objets stockHistory
-            val stockHistoryList = querySnapshot.documents.mapNotNull { document ->
-                StockHistory(
-                    date = document.getString("date") ?: "",
-                    medicineId = document.getString("medicineId") ?: "",
-                    medicineName = document.getString("medicineName") ?: "",
-                    quantity = document.getLong("quantity") ?: 0,
-                    reason = document.getString("reason") ?: "",
-                    type = document.getString("type") ?: "",
-                    updatedBy = document.getString("updatedBy") ?: ""
-                )
+            if (stockDocs.isEmpty) {
+                // Si aucun stock n'est trouvé pour ce medicineId, retourner false
+                return false
             }
 
-            // Émettre la liste des entrées d'historique
-            emit(stockHistoryList)
+            // Récupération du nom du médicament depuis la collection "medicine"
+            val medicineDoc = db.collection("medicines").document(medicineId).get().await()
+            val medicineName = medicineDoc.getString("name") ?: "Unknown"  // Utilise "name" pour récupérer le nom du médicament
+
+            // Mise à jour de la quantité pour chaque document trouvé dans "stock"
+            stockDocs.documents.forEach { stockDoc ->
+                // Récupération de la quantité actuelle
+                val currentQuantity = stockDoc.getLong("quantity")?.toInt() ?: 0
+
+                // Calcul de la nouvelle quantité
+                var newQuantity = currentQuantity + quantityDelta
+
+                // Si la nouvelle quantité est inférieure à 0, empêcher la mise à jour
+                if (newQuantity < 0) newQuantity = 0
+
+                // Mise à jour de la quantité dans le document stock
+                db.collection("stock").document(stockDoc.id)
+                    .update("quantity", newQuantity)
+                    .await()
+
+                // Ajout dans l'historique
+                val history = StockHistory(
+                    date = getCurrentDate(),
+                    time = getCurrentTime(),
+                    medicineId = medicineId,
+                    medicineName = medicineName,
+                    quantity = quantityDelta,
+                    action = if (quantityDelta > 0) "ADD" else "REMOVE",  // Action selon le delta
+                    description = description,
+                    author = author
+                )
+
+                // Ajouter l'historique dans la collection "history"
+                db.collection("history").add(history)
+                    .await()
+            }
+
+            true
         } catch (e: Exception) {
-            emit(emptyList<StockHistory>()) // En cas d'erreur, émettre une liste vide
+            false
         }
     }
 
-
-
-    //Medicine ------------------------------------------------------------------------<
-
-
     /**
-     * Ajoute un médicament dans la collection des médicaments et met à jour tous les magasins avec une quantité initiale de 0.
+     * Retrieves the stock quantity for a given medicineId.
+     * @param medicineId The ID of the medicine to retrieve the stock for.
+     * @return The stock quantity for the given medicineId, or null if no stock entry is found or an error occurs.
      */
-    suspend fun addMedicine(
-        name: String,
-        description: String,
-        dosage: String,
-        manufacturer: String
-    ): String? {
+    suspend fun getStockQuantity(medicineId: String): Int? {
         return try {
-            // Ajouter le médicament dans la collection "medicines"
-            val medicineRef = db.collection("medicines").document() // Crée un document avec un ID unique
+            // Recherche de l'entrée de stock correspondante au medicineId
+            val stockDocs = db.collection("stock")
+                .whereEqualTo("medicineId", medicineId)
+                .get()
+                .await()
 
-            val medicineId = medicineRef.id
-
-            // Ajouter les informations du médicament
-            medicineRef.set(
-                mapOf(
-                    "id" to medicineId,
-                    "name" to name,
-                    "description" to description,
-                    "dosage" to dosage,
-                    "manufacturer" to manufacturer,
-                    "createdAt" to System.currentTimeMillis() // Stocke la date de création en millisecondes
-                )
-            ).await()
-
-            // Ajouter ce médicament dans tous les magasins avec une quantité initiale de 0
-            val aisleSnapshot = db.collection("Aisle").get().await()
-
-            for (aisleDoc in aisleSnapshot.documents) {
-                val aisleRef = aisleDoc.reference
-
-                // Ajouter le médicament au stock du magasin avec une quantité de 0
-                aisleRef.collection("medicines").document(medicineId).set(
-                    mapOf(
-                        "medicineId" to medicineId,
-                        "quantity" to 0,
-                        "lastUpdate" to System.currentTimeMillis()
-                    )
-                ).await()
+            if (stockDocs.isEmpty) {
+                // Si aucun stock n'est trouvé pour ce medicineId, retourner null
+                null
+            } else {
+                // Récupérer la quantité du premier document trouvé
+                stockDocs.documents.firstOrNull()?.getLong("quantity")?.toInt() ?: 0
             }
-
-            medicineId // Retourne l'ID du médicament ajouté
         } catch (e: Exception) {
-            null // Si une erreur se produit, retourner null
+            // En cas d'erreur, retourner null
+            null
         }
     }
 
+    /**
+     * Retrieves the aisleId for a given medicineId.
+     * @param medicineId The ID of the medicine to retrieve the aisleId for.
+     * @return The aisleId for the given medicineId, or null if no aisleId is found.
+     */
+    @OptIn(DelicateCoroutinesApi::class)
+    fun getMedicineAisle(medicineId: String): Flow<String?> = callbackFlow {
+        val query = db.collection("stock")
+            .whereEqualTo("medicineId", medicineId)
+            .limit(1)
+
+        val listener = query.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error) // Fermeture propre en cas d'erreur
+                return@addSnapshotListener
+            }
+
+            val aisleId = snapshot?.documents?.firstOrNull()?.getString("aisleId")
+
+            if (!isClosedForSend) { // Vérifie si le Flow est encore actif
+                trySend(aisleId).isSuccess
+            }
+        }
+
+        awaitClose { listener.remove() }
+    }.catch { emit(null) } // Gestion des erreurs sans casser le Flow
+
 
     /**
-     * Récupère tous les médicaments sous forme d'un Flow<List<Medicine>>.
+     * Get the current date in the format "dd-MM-yyyy".
+     * @return The current date as a string.
      */
-     fun fetchAllMedicines(): Flow<List<Medicine>> = flow {
-        try {
-            // Récupérer tous les médicaments de la collection "medicines"
-            val querySnapshot = db.collection("medicines").get().await()
+    private fun getCurrentDate(): String {
+        // Retourne la date actuelle au format souhaité (par exemple : "20-04-2025")
+        val dateFormatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        return dateFormatter.format(Date())
+    }
 
-            // Transformer les documents en objets Medicine
-            val medicines = querySnapshot.documents.mapNotNull { document ->
-                val id = document.getString("id")
-                val name = document.getString("name")
-                val description = document.getString("description")
-                val dosage = document.getString("dosage")
-                val manufacturer = document.getString("manufacturer")
-                val createdAt = document.getLong("createdAt") ?: 0L
+    /**
+     * Get the current time in the format "HH:mm:ss".
+     * @return The current time as a string.
+     */
+    private fun getCurrentTime(): String {
+        // Retourne l'heure actuelle au format souhaité (par exemple : "12:34:03")
+        val timeFormatter = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        return timeFormatter.format(Date())
+    }
 
-                if (id!=null && name != null && description != null && dosage != null && manufacturer != null) {
-                    Medicine(id,name, description, dosage, manufacturer, createdAt)
-                } else {
-                    null // Ignore les documents mal formatés
+    //History ------------------------------------------------------------------------<
+
+    /**
+     * Get the history for a specific medicine.
+     * @param medicineId The ID of the medicine.
+     * @return A Flow emitting a list of stock history entries.
+     */
+    fun getHistoryForMedicine(medicineId: String): Flow<List<StockHistory>> = callbackFlow {
+        val listenerRegistration = db.collection("history")
+            .whereEqualTo("medicineId", medicineId)
+            .orderBy("date", Query.Direction.DESCENDING)
+            .addSnapshotListener { querySnapshot, exception ->
+                if (exception != null) {
+                    // En cas d'erreur, nous envoyons une exception dans le Flow
+                    trySend(emptyList()) // Ou envoyer une erreur si nécessaire
+                    return@addSnapshotListener
                 }
+
+                // Conversion des documents en objets StockHistory
+                val historyList = querySnapshot?.documents?.mapNotNull { document ->
+                    document.toObject(StockHistory::class.java)
+                } ?: emptyList()
+
+                // Envoi de la nouvelle liste d'historique dans le Flow
+                trySend(historyList)
             }
 
-            // Émettre la liste des médicaments
-            emit(medicines)
-        } catch (e: Exception) {
-            emit(emptyList()) // Si une erreur survient, émettre une liste vide
+        // Nettoyage de l'écouteur lorsque le Flow est terminé (par exemple, lors de la fermeture de la view ou du fragment)
+        awaitClose {
+            listenerRegistration.remove()
         }
     }
 
-
     /**
-     * Supprime un médicament de la collection des médicaments et de toutes les sous-collections des magasins.
+     * Get all history.
+     * @return A Flow emitting a list of stock history entries.
      */
-    suspend fun deleteMedicine(medicineId: String): Boolean {
-        return try {
-            // Supprimer le médicament de la collection principale "medicines"
-            val medicineRef = db.collection("medicines").document(medicineId)
+    fun getAllHistory(): Flow<List<StockHistory>> = callbackFlow {
+        val listenerRegistration = db.collection("history")
+            .orderBy("date", Query.Direction.DESCENDING)  // Trie par date, du plus récent au plus ancien
+            .addSnapshotListener { querySnapshot, exception ->
+                if (exception != null) {
+                    // En cas d'erreur, nous envoyons une exception dans le Flow
+                    trySend(emptyList()) // Ou envoyer une erreur si nécessaire
+                    return@addSnapshotListener
+                }
 
-            // Supprimer le médicament dans la collection "medicines"
-            medicineRef.delete().await()
+                // Conversion des documents en objets StockHistory
+                val historyList = querySnapshot?.documents?.mapNotNull { document ->
+                    document.toObject(StockHistory::class.java)
+                } ?: emptyList()
 
-            // Supprimer le médicament dans la sous-collection "medicines" de chaque magasin
-            val aisleSnapshot = db.collection("Aisle").get().await()
-
-            for (aisleDoc in aisleSnapshot.documents) {
-                val aisleRef = aisleDoc.reference
-
-                // Supprimer le médicament du stock du magasin
-                aisleRef.collection("medicines").document(medicineId).delete().await()
+                // Envoi de la nouvelle liste d'historique dans le Flow
+                trySend(historyList)
             }
 
-            true // Retourne true si la suppression a réussi
-        } catch (e: Exception) {
-            false // Retourne false en cas d'erreur
+        // Nettoyage de l'écouteur lorsque le Flow est terminé
+        awaitClose {
+            listenerRegistration.remove()
         }
     }
-
-
-
-    /**
-     * Trie tous les médicaments par quantité en stock sur tous les magasins.
-     */
-    suspend fun getMedicinesSortedByStock(): List<Pair<String, Long>> {
-        return try {
-            val querySnapshot = db.collectionGroup("medicines")
-                .orderBy("quantity", Query.Direction.DESCENDING)
-                .get()
-                .await()
-
-            querySnapshot.documents.mapNotNull { doc ->
-                val medicineId = doc.getString("medicineId")
-                val quantity = doc.getLong("quantity")
-                if (medicineId != null && quantity != null) medicineId to quantity else null
-            }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-
-    /**
-     * Trie tous les médicaments par nom (ordre alphabétique).
-     */
-    suspend fun getMedicinesSortedByName(): List<Map<String, Any>> {
-        return try {
-            val querySnapshot = db.collection("medicines")
-                .orderBy("name", Query.Direction.ASCENDING)
-                .get()
-                .await()
-
-            querySnapshot.documents.mapNotNull { it.data }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-
-    /**
-     * Recherche des médicaments par nom (partiel ou complet).
-     */
-    suspend fun searchMedicinesByName(query: String): List<Map<String, Any>> {
-        return try {
-            val querySnapshot = db.collection("medicines")
-                .orderBy("name")
-                .startAt(query)
-                .endAt(query + "\uf8ff") // Cela permet de chercher des correspondances partielles
-                .get()
-                .await()
-
-            querySnapshot.documents.mapNotNull { it.data }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-
-
 
 
     //User profile ------------------------------------------------------------------------<
 
     /**
-     * Ajoute un utilisateur à la collection "users" dans Firestore.
-     * L'ID est auto-généré par Firestore et ajouté à l'objet User.
+     * Add a new user to the Firestore collection.
+     * @param user The user to add.
+     * @return The ID of the added user, or null if an error occurred.
      */
     suspend fun addUser(user: User): String? {
         return try {
@@ -496,9 +628,10 @@ class FireStoreService {
         }
     }
 
-
     /**
-     * Supprime un utilisateur de la collection "users" dans Firestore.
+     * Delete a user from the Firestore collection.
+     * @param userId The ID of the user to delete.
+     * @return True if the deletion was successful, false otherwise.
      */
     suspend fun deleteUser(userId: String): Boolean {
         return try {
@@ -515,9 +648,10 @@ class FireStoreService {
     }
 
 
-
     /**
-     * Récupère un utilisateur à partir de son email depuis la collection "users".
+     * Get a user by their ID.
+     * @param userId The ID of the user to retrieve.
+     * @return A Flow emitting the user object or null if not found.
      */
     fun getUserById(userId: String) = flow {
         try {
@@ -544,7 +678,5 @@ class FireStoreService {
             emit(null) // En cas d'erreur, émettre null
         }
     }
-
-
 
 }
