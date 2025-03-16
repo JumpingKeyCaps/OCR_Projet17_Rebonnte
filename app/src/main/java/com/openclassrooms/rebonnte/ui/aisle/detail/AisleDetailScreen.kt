@@ -87,7 +87,10 @@ fun AisleDetailScreen(aisleId: String, viewModel: AisleDetailViewModel = hiltVie
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showDeleteDialog = true }) {
+                    IconButton(
+                        onClick = { showDeleteDialog = true },
+                        enabled = aisleId != viewModel.DEFAULT_AISLE_ID
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Supprimer"
