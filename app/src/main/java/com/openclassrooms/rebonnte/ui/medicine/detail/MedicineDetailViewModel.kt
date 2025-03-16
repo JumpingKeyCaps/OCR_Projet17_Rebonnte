@@ -135,7 +135,7 @@ class MedicineDetailViewModel @Inject constructor(
     // Variables pour le debouncing et l'accumulation
     private var quantityDelta = 0 // Accumulateur de changements de quantité
     private var debounceJob: Job? = null // Job pour le délai
-    private val DEBOUNCE_TIME = 1000L // Délai de 1 seconde
+    private val DEBOUNCE_TIME = 500L // Délai de 1 seconde
 
     /**
      * Update the stock quantity of a medicine with debouncing.
