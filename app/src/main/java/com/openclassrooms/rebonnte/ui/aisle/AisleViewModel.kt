@@ -24,8 +24,6 @@ class AisleViewModel @Inject constructor(
     private var _aisles = MutableStateFlow<List<Aisle>>(emptyList())
     val aisles: StateFlow<List<Aisle>> get() = _aisles
 
-    private val _aisleActionResult = MutableSharedFlow<Result<Boolean>>()
-    val aisleActionResult: SharedFlow<Result<Boolean>> get() = _aisleActionResult
 
     init {
         // Récupérer tous les rayons au lancement du ViewModel
@@ -44,44 +42,7 @@ class AisleViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Add a new aisle to the database.
-     * @param name The name of the aisle.
-     * @param description The description of the aisle.
-     */
-    fun addAisle(name: String, description: String) {
-        viewModelScope.launch {
-            try {
-                val isSuccess = aisleRepository.addAisle(name, description)
-                if (isSuccess) {
-                    _aisleActionResult.emit(Result.success(true))
-                } else {
-                    _aisleActionResult.emit(Result.failure(Exception("Failed to add aisle")))
-                }
-            } catch (e: Exception) {
-                _aisleActionResult.emit(Result.failure(e))
-            }
-        }
-    }
 
-    /**
-     * Delete an aisle from the database.
-     * @param aisleId The ID of the aisle to delete.
-     */
-    fun deleteAisle(aisleId: String) {
-        viewModelScope.launch {
-            try {
-                val isSuccess = aisleRepository.deleteAisle(aisleId)
-                if (isSuccess) {
-                    _aisleActionResult.emit(Result.success(true))
-                } else {
-                    _aisleActionResult.emit(Result.failure(Exception("Failed to delete aisle")))
-                }
-            } catch (e: Exception) {
-                _aisleActionResult.emit(Result.failure(e))
-            }
-        }
-    }
 
 
 }
