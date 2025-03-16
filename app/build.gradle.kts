@@ -128,6 +128,11 @@ dependencies {
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
+    // Dépendance pour BottomSheet
+    implementation ("androidx.compose.material:material:1.7.6")
+    implementation("androidx.compose.material3:material3:1.3.1")
+    implementation ("androidx.compose.ui:ui:1.7.8")
+    implementation ("androidx.compose.foundation:foundation:1.7.8")
 }
 
 //JACOCO STUFF --------------------

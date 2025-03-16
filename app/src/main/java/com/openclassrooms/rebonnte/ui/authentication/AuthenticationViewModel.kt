@@ -67,7 +67,7 @@ class AuthenticationViewModel @Inject constructor(
      */
     private fun addUserToFireStore(user: User) {
         val newUser = user.copy(
-            id = user.id, // Utilisation du UID de FirebaseUser
+            id = user.id,
             email = user.email,
             firstname = user.firstname.capitalizeFirstLetter(),
             lastname = user.lastname.capitalizeFirstLetter()

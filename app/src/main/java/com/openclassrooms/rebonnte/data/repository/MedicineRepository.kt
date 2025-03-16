@@ -13,27 +13,15 @@ class MedicineRepository @Inject constructor(private val fireStoreService: FireS
 
     /**
      * Add a new medicine to Firestore and return a boolean indicating success.
-     * @param name The name of the medicine.
-     * @param dosage The dosage of the medicine.
-     * @param fabricant The manufacturer of the medicine.
-     * @param indication The indication of the medicine.
-     * @param principeActif The principal active ingredient of the medicine.
-     * @param utilisation The utilisation of the medicine.
-     * @param warning The warning of the medicine.
-     * @return True if the operation is successful, false otherwise.
+     * @param medicine The Medicine object to add.
+     * @param aisleId The ID of the aisle to add the medicine to.
+     *
      */
     suspend fun addMedicine(
-        name: String,
-        dosage: String,
-        fabricant: String,
-        indication: String,
-        principeActif: String,
-        utilisation: String,
-        warning: String
+        medicine: Medicine,
+        aisleId: String?
     ): Boolean {
-        return fireStoreService.addMedicine(
-            name, dosage, fabricant, indication, principeActif, utilisation, warning
-        )
+        return fireStoreService.addMedicine(medicine,aisleId)
     }
 
     /**

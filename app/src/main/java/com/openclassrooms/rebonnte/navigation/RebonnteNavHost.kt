@@ -8,10 +8,13 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.google.firebase.auth.FirebaseAuth
 import com.openclassrooms.rebonnte.ui.MainScreen
+import com.openclassrooms.rebonnte.ui.aisle.add.AddAisleScreen
 import com.openclassrooms.rebonnte.ui.aisle.detail.AisleDetailScreen
 import com.openclassrooms.rebonnte.ui.authentication.LoginScreen
 import com.openclassrooms.rebonnte.ui.authentication.RegisterUserScreen
+import com.openclassrooms.rebonnte.ui.medicine.add.AddMedicineScreen
 import com.openclassrooms.rebonnte.ui.medicine.detail.MedicineDetailScreen
 import com.openclassrooms.rebonnte.ui.noInternet.NoInternetScreen
 
@@ -43,33 +46,40 @@ fun RebonnteNavHost (
                         restoreState = false
                     }
                 },
-                onAddMedicineAction = {
-                    navHostController.navigate(ScreensNav.AddMedicine.route)
-                },
                 onMedicineClicked = {medicineWS ->
                     navHostController.navigate(ScreensNav.MedicineDetails.createRoute(medicineWS.medicineId))
                 },
                 onAisleClicked = { aisle ->
                     navHostController.navigate(ScreensNav.AisleDetails.createRoute(aisle.aisleId))
-                }
+                },
+                onAddMedicineClick = { navHostController.navigate(ScreensNav.AddMedicine.route) },
+                onAddAisleClick = { navHostController.navigate(ScreensNav.AddAisle.route) }
+
             )
         }
 
         //Medicine details screen
         composable(route = ScreensNav.MedicineDetails.route,
             arguments = ScreensNav.MedicineDetails.navArguments,
+            enterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }) + fadeIn() },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }) + fadeOut() }
 
         ){ backStackEntry ->
             val medicineId = backStackEntry.arguments?.getString("medicineId")
                 ?: throw IllegalArgumentException("Medicine ID is required")
-            MedicineDetailScreen(medicineId = medicineId)
+            MedicineDetailScreen(medicineId = medicineId,
+                onBackClick = { navHostController.popBackStack()},
+                userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                )
         }
 
         //Aisle Details screen
         composable(route = ScreensNav.AisleDetails.route,
             arguments = ScreensNav.AisleDetails.navArguments,
-            enterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth })},
-            exitTransition = {slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }) }
+            enterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }) + fadeIn() },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }) + fadeOut() },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }) + fadeIn() },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }) + fadeOut() }
         ){backStackEntry ->
             val aisleId = backStackEntry.arguments?.getString("aisleId")
                 ?: throw IllegalArgumentException("Aisle ID is required")
@@ -77,15 +87,32 @@ fun RebonnteNavHost (
                 aisleId = aisleId,
                 onMedicineClicked = {medicineID ->
                     navHostController.navigate(ScreensNav.MedicineDetails.createRoute(medicineID))
-                }
+                },
+                onBackClick = { navHostController.popBackStack() }
             )
         }
 
-        //Add medicine screen
-        composable(route = ScreensNav.AddMedicine.route){}
 
-        //Add Aisle screen
-        composable(route = ScreensNav.AddAisle.route){}
+        //Add medicine screen
+        composable(route = ScreensNav.AddMedicine.route){
+            AddMedicineScreen(
+                onBackClick = { navHostController.popBackStack() },
+                onMedicineAdded = { navHostController.popBackStack() }
+            )
+
+        }
+
+        //Add aisle screen
+        composable(route = ScreensNav.AddAisle.route){
+            AddAisleScreen(
+                onBackClick = { navHostController.popBackStack() },
+                onAisleAdded = { navHostController.popBackStack() }
+            )
+        }
+
+
+
+
 
         //Login screen
         composable(route = ScreensNav.SignIn.route){

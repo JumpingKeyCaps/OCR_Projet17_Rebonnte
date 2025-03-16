@@ -1,6 +1,7 @@
 package com.openclassrooms.rebonnte.data.repository
 
 import com.openclassrooms.rebonnte.data.service.firestore.FireStoreService
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 /**
@@ -38,5 +39,14 @@ class StockRepository @Inject constructor(private val fireStoreService: FireStor
      */
     suspend fun getStockQuantity(medicineId: String): Int? {
         return fireStoreService.getStockQuantity(medicineId)
+    }
+
+    /**
+     * Get the sock quantity for a medicine (Flow way)
+     * @param medicineId The ID of the medicine to retrieve the stock for.
+     * @return a flow of the stock quantity for this medicine
+     */
+    fun getStockQuantityFlow(medicineId: String): Flow<Int?>{
+        return fireStoreService.getStockQuantityFlow(medicineId)
     }
 }
