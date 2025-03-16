@@ -4,15 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openclassrooms.rebonnte.data.repository.MedicineRepository
 import com.openclassrooms.rebonnte.data.repository.StockRepository
-import com.openclassrooms.rebonnte.domain.Aisle
 import com.openclassrooms.rebonnte.domain.Medicine
 import com.openclassrooms.rebonnte.domain.MedicineWithStock
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.util.Locale
-import java.util.Random
 import javax.inject.Inject
 
 /**
@@ -27,31 +24,11 @@ class MedicineViewModel @Inject constructor(
 ) : ViewModel() {
     private var _medicines = MutableStateFlow<MutableList<Medicine>>(mutableListOf())
     val medicines: StateFlow<List<Medicine>> get() = _medicines
-
-
-    // _medicinesWithStock est un MutableLiveData pour exposer les données à l'UI
     private val _medicinesWithStock = MutableStateFlow<List<MedicineWithStock>>(emptyList())
     val medicinesWithStock: StateFlow<List<MedicineWithStock>> get() = _medicinesWithStock
 
-
     init {
-        // Récupérer les médicaments au démarrage
-      //  fetchAllMedicines()
         fetchAllMedicinesWithStock()
-    }
-
-
-    /**
-     * Fetch all medicines from the database.
-     * @param sortDsc Sort medicines in descending order.
-     */
-    private fun fetchAllMedicines(sortDsc: Boolean = true) {
-        viewModelScope.launch {
-            medicineRepository.fetchAllMedicines(sortDsc).collect { medicinesList ->
-                // Mettre à jour le StateFlow avec la nouvelle liste de médicaments
-                _medicines.value = medicinesList.filterNotNull().toMutableList() // Exclut les éléments null
-            }
-        }
     }
 
 
@@ -59,7 +36,7 @@ class MedicineViewModel @Inject constructor(
      * Fetch all medicines with stock from the database.
      * @param sortDsc Sort medicines in descending order.
      */
-    private fun fetchAllMedicinesWithStock(sortDsc: Boolean = true) {
+    private fun fetchAllMedicinesWithStock(sortDsc: Boolean = false) {
         viewModelScope.launch {
             // Collecte tous les médicaments depuis le repository
             medicineRepository.fetchAllMedicines(sortDsc).collect { medicinesList ->
@@ -137,41 +114,63 @@ class MedicineViewModel @Inject constructor(
      * @param searchQuery Query to search medicines.
      */
     fun searchMedicinesRealTime(searchQuery: String) {
-        viewModelScope.launch {
-            medicineRepository.searchMedicinesRealTime(searchQuery).collect { medicinesList ->
-                _medicines.value = medicinesList.filterNotNull().toMutableList() // Mise à jour des médicaments filtrés
+
+        if (searchQuery.isEmpty() || searchQuery.isBlank()) {
+            fetchAllMedicinesWithStock()
+        }else{
+            viewModelScope.launch {
+                // Collecte tous les médicaments depuis le repository
+                val formattedQuery = searchQuery.replaceFirstChar { it.uppercase() }
+                medicineRepository.searchMedicinesRealTime(formattedQuery).collect { medicinesList ->
+                    val medicinesWithStockList = mutableListOf<MedicineWithStock>()
+
+                    if (medicinesList.isNotEmpty()) {
+                        // Pour chaque médicament récupéré, on récupère la quantité de stock associée
+                        for (medicine in medicinesList) {
+                            if (medicine != null) {
+                                // Récupérer la quantité de stock pour chaque médicament
+                                val quantity = stockRepository.getStockQuantity(medicine.medicineId) ?: 0
+
+                                // Créer l'objet MedicineWithStock et l'ajouter à la liste
+                                val medicineWithStock = MedicineWithStock(
+                                    medicineId = medicine.medicineId,
+                                    name = medicine.name,
+                                    description = medicine.description,
+                                    dosage = medicine.dosage,
+                                    fabricant = medicine.fabricant,
+                                    indication = medicine.indication,
+                                    principeActif = medicine.principeActif,
+                                    utilisation = medicine.utilisation,
+                                    warning = medicine.warning,
+                                    createdAt = medicine.createdAt,
+                                    quantity = quantity
+                                )
+                                medicinesWithStockList.add(medicineWithStock)
+                            }
+                        }
+                    }
+
+                    // Mettre à jour le StateFlow avec la nouvelle liste de médicaments avec stock
+                    _medicinesWithStock.value = medicinesWithStockList
+                }
             }
         }
     }
 
-
-    fun filterByName(name: String) {
-        val currentMedicines: List<Medicine> = medicines.value
-        val filteredMedicines: MutableList<Medicine> = ArrayList()
-        for (medicine in currentMedicines) {
-            if (medicine.name.lowercase(Locale.getDefault())
-                    .contains(name.lowercase(Locale.getDefault()))
-            ) {
-                filteredMedicines.add(medicine)
-            }
-        }
-        _medicines.value = filteredMedicines
-    }
-
-    fun sortByNone() {
-        _medicines.value = medicines.value.toMutableList() // Pas de tri
-    }
-
+    /**
+     * Sort medicines by name.
+     */
     fun sortByName() {
-        val currentMedicines = ArrayList(medicines.value)
-        currentMedicines.sortWith(Comparator.comparing(Medicine::name))
-        _medicines.value = currentMedicines
+        val sortedList = medicinesWithStock.value.sortedBy { it.name }
+        _medicinesWithStock.value = sortedList.map { it.copy() } // Copie chaque élément
     }
 
+    /**
+     * Sort medicines by stock.
+     */
     fun sortByStock() {
-        val currentMedicines = ArrayList(medicines.value)
-       // currentMedicines.sortWith(Comparator.comparingInt(Medicine::stock))
-        _medicines.value = currentMedicines
+        val sortedList = medicinesWithStock.value.sortedByDescending { it.quantity }
+        _medicinesWithStock.value = sortedList.map { it.copy() } // Copie chaque élément
     }
 }
 
