@@ -18,7 +18,7 @@ import androidx.annotation.Keep
 @Keep
 data class Medicine(
     val medicineId: String = "",
-    val name: String= "",
+    val name: String = "",
     val description: String = "",
     val dosage: String = "",
     val fabricant: String = "",

@@ -37,6 +37,7 @@ fun MedicineScreen(
     onBackClick: () -> Unit,
     onMedicineClicked: (MedicineWithStock) -> Unit
     ) {
+    viewModel.refreshMedicines()
     val medicinesWithStock by viewModel.medicinesWithStock.collectAsState(initial = emptyList())
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }

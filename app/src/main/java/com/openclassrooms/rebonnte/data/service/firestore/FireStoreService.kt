@@ -140,28 +140,15 @@ class FireStoreService {
      * Automatically sets the medicineID and createdAt timestamp.
      * Checks if a medicine with the same name already exists.
      * Creates a default entry in the 'stock' collection with a default aisleId and quantity = 0.
-     * @param name The name of the medicine.
-     * @param dosage The dosage instructions for the medicine.
-     * @param fabricant The manufacturer of the medicine.
-     * @param indication The indication for the use of the medicine.
-     * @param principeActif The active ingredient of the medicine.
-     * @param utilisation The usage instructions for the medicine.
-     * @param warning Any warning for the use of the medicine.
+     * @param medicine The Medicine object to add.
+     * @param aisleId The ID of the aisle to add the medicine to.
      * @return True if the operation is successful, false otherwise.
      */
-    suspend fun addMedicine(
-        name: String,
-        dosage: String,
-        fabricant: String,
-        indication: String,
-        principeActif: String,
-        utilisation: String,
-        warning: String
-    ): Boolean {
+    suspend fun addMedicine(medicine: Medicine, aisleId: String?): Boolean {
         return try {
             // Vérifier si un médicament avec le même nom existe déjà
             val querySnapshot = db.collection("medicines")
-                .whereEqualTo("name", name)
+                .whereEqualTo("name", medicine.name)
                 .get()
                 .await()
 
@@ -169,23 +156,13 @@ class FireStoreService {
             if (querySnapshot.isEmpty) {
                 // Si aucun médicament avec ce nom, ajouter le nouveau médicament
                 val docRef = db.collection("medicines").document()
-                val medicine = Medicine(
-                    medicineId = docRef.id,
-                    name = name,
-                    dosage = dosage,
-                    fabricant = fabricant,
-                    indication = indication,
-                    principeActif = principeActif,
-                    utilisation = utilisation,
-                    warning = warning,
-                    createdAt = System.currentTimeMillis()
-                )
-                docRef.set(medicine).await()
+                val formattedMedicine = medicine.copy(createdAt = System.currentTimeMillis())
+                docRef.set(formattedMedicine).await()
 
                 // Créer une entrée dans la collection 'stock' avec un modèle dédié
                 val stock = Stock(
                     medicineId = docRef.id,
-                    aisleId = "0phZ52jwfLfhd7ri8PqH" // Aisle ID par défaut
+                    aisleId = if (aisleId.isNullOrEmpty()) "0phZ52jwfLfhd7ri8PqH" else aisleId, // Aisle ID par défaut
                 )
                 db.collection("stock").add(stock).await()
 
@@ -232,25 +209,20 @@ class FireStoreService {
      * Returns a Flow of a list of medicines that will emit new values when the data changes.
      * @return A Flow emitting a list of medicines.
      */
-    fun fetchAllMedicines(sortDsc: Boolean): Flow<List<Medicine?>> = callbackFlow {
-        val listener = db.collection("medicines")
+    fun fetchAllMedicines(sortDsc: Boolean): Flow<List<Medicine?>> = flow {
+        // Fetch all medicines from Firestore
+        val snapshot = db.collection("medicines")
             .orderBy("name", if (sortDsc) Query.Direction.DESCENDING else Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshot, exception ->
-                if (exception != null) {
-                    close(exception) // If there's an error, close the flow with the exception
-                    return@addSnapshotListener
-                }
+            .get()
+            .await() // Await the initial data fetch.
 
-                // If snapshot is not null, convert it to a list of Medicine objects
-                val medicines = snapshot?.documents?.map { doc ->
-                    doc.toObject(Medicine::class.java)?.copy(medicineId = doc.id) // Mapping to Medicine
-                } ?: emptyList()
+        // Map the snapshot to a list of Medicine objects
+        val medicines = snapshot.documents.mapNotNull { doc ->
+            doc.toObject(Medicine::class.java)?.copy(medicineId = doc.id)
+        }
 
-                trySend(medicines) // Emit the list of medicines to the flow
-            }
-
-        // Clean up the listener when the flow is cancelled
-        awaitClose { listener.remove() }
+        // Emit the list of medicines
+        emit(medicines)
     }
 
     /**
@@ -486,6 +458,34 @@ class FireStoreService {
         }
     }
 
+    fun getStockQuantityFlow(medicineId: String): Flow<Int> = flow {
+        // Recherche de l'entrée de stock correspondante au medicineId
+        val stockDocs = try {
+            db.collection("stock")
+                .whereEqualTo("medicineId", medicineId)
+                .get()
+                .await()
+        } catch (e: Exception) {
+            // Handle the error here instead of emitting from catch
+            emit(0)  // Fallback when there's an error
+            return@flow  // Exit flow after emitting error fallback value
+        }
+
+        if (stockDocs.isEmpty) {
+            // Si aucun stock n'est trouvé pour ce medicineId, émettre 0
+            emit(0)
+        } else {
+            // Récupérer la quantité du premier document trouvé et émettre la quantité
+            val quantity = stockDocs.documents.firstOrNull()?.getLong("quantity")?.toInt() ?: 0
+            emit(quantity)
+        }
+    }
+
+
+
+
+
+
     /**
      * Retrieves the aisleId for a given medicineId.
      * @param medicineId The ID of the medicine to retrieve the aisleId for.
@@ -608,21 +608,20 @@ class FireStoreService {
         return try {
 
             // Ajouter un utilisateur à la collection "users"
-            val userRef = db.collection("users").document() // Génère un ID unique
-            val userId = userRef.id // L'ID auto-généré par Firestore
+            val userRef = db.collection("users").document(user.id) // Génère un ID unique
 
             // Créer un map avec les données de l'utilisateur
             val userMap = mapOf(
                 "email" to user.email,
                 "firstname" to user.firstname,
                 "lastname" to user.lastname,
-                "id" to userId,
+                "id" to user.id,
             )
 
             // Ajouter les données à la base de données
             userRef.set(userMap).await()
 
-            userId // Retourner l'ID de l'utilisateur
+            user.id // Retourner l'ID de l'utilisateur
         } catch (e: Exception) {
             null // En cas d'erreur, retourner null
         }

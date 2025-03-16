@@ -86,7 +86,7 @@ fun HistoryItem(history: StockHistory) {
                 ) {
                     Icon(imageVector = Icons.Default.Person, contentDescription = "User", modifier = Modifier.size(20.dp), tint = Color.White)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "User: ${history.author}", style = MaterialTheme.typography.body2, color = Color.White,textAlign = TextAlign.Center,)
+                    Text(text = history.author, style = MaterialTheme.typography.body2, color = Color.White,textAlign = TextAlign.Center,)
                 }
                 Text(
                     modifier = Modifier.weight(1f).fillMaxWidth(),

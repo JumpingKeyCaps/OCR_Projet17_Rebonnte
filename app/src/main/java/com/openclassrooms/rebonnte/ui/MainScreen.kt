@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -20,7 +19,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -29,7 +27,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.auth.FirebaseAuth
 import com.openclassrooms.rebonnte.domain.Aisle
 import com.openclassrooms.rebonnte.domain.MedicineWithStock
 import com.openclassrooms.rebonnte.navigation.ScreensNav
@@ -41,20 +38,27 @@ import com.openclassrooms.rebonnte.ui.medicine.MedicineScreen
  * Main screen composable function.
  *  - Manages the inner navigation graph for the Aisle and Medicine screens.
  *  - Manages the bottom navigation bar.
+ *
+ *  @param onLogOutAction Callback for when the user logs out.
+ *  @param onMedicineClicked Callback for when a medicine is clicked.
+ *  @param onAisleClicked Callback for when an aisle is clicked.
+ *  @param onAddMedicineClick Callback for when the user clicks on the add medicine button.
+ *  @param onAddAisleClick Callback for when the user clicks on the add aisle button.
  */
 @Composable
 fun MainScreen(
     onLogOutAction: () -> Unit,
-    onAddMedicineAction: () -> Unit,
     onMedicineClicked: (MedicineWithStock) -> Unit,
-    onAisleClicked: (Aisle) -> Unit
+    onAisleClicked: (Aisle) -> Unit,
+    onAddMedicineClick: () -> Unit,
+    onAddAisleClick: () -> Unit
 ) {
 
     //todo main screen contentment for Aisle and Medicine screens
-    val currentUser = FirebaseAuth.getInstance().currentUser
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute  = navBackStackEntry?.destination?.route
+
 
 
     Scaffold(
@@ -63,18 +67,19 @@ fun MainScreen(
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 if (currentRoute == ScreensNav.Aisles.route) {
-
-                  //  navController.navigate(ScreensNav.AddAisle.route)
+                    onAddAisleClick()
 
                } else if (currentRoute == ScreensNav.Medicines.route) {
-                  //  navController.navigate(ScreensNav.AddMedicine.route)
+                   onAddMedicineClick()
                }
             }) {
                 Icon(Icons.Default.Add, contentDescription = "Add")
             }
         }
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding).fillMaxWidth()) {
+        Box(modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxWidth()) {
             InnerNavigationGraph(
                 navController = navController,
                 startDestination = ScreensNav.Aisles.route,
@@ -84,8 +89,6 @@ fun MainScreen(
 
         }
     }
-
-
 }
 
 /**

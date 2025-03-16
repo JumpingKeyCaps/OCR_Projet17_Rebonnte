@@ -3,10 +3,13 @@ package com.openclassrooms.rebonnte.ui.aisle.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.openclassrooms.rebonnte.data.repository.AisleRepository
+import com.openclassrooms.rebonnte.data.repository.StockRepository
 import com.openclassrooms.rebonnte.domain.Aisle
 import com.openclassrooms.rebonnte.domain.MedicineWithStock
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,7 +21,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class AisleDetailViewModel @Inject constructor(
-    private val aisleRepository: AisleRepository
+    private val aisleRepository: AisleRepository,
+    private val stockRepository: StockRepository
 ) : ViewModel() {
 
     private var _aisle = MutableStateFlow(Aisle())
@@ -29,6 +33,8 @@ class AisleDetailViewModel @Inject constructor(
     val medicines: StateFlow<List<MedicineWithStock>> get() = _medicines
 
 
+    private val _aisleActionResult = MutableSharedFlow<Result<Boolean>>()
+    val aisleActionResult: SharedFlow<Result<Boolean>> get() = _aisleActionResult
 
     // Fonction pour charger le rayon et les médicaments associés
     fun loadAisle(aisleId: String) {
@@ -37,7 +43,7 @@ class AisleDetailViewModel @Inject constructor(
             val fetchedAisle = aisleRepository.fetchAisleById(aisleId)
             if (fetchedAisle != null) {
                 _aisle.value = fetchedAisle
-            } // Met à jour le rayon
+            }
 
             // Si le rayon est trouvé, récupérer les médicaments associés
             fetchedAisle?.let {
@@ -56,12 +62,39 @@ class AisleDetailViewModel @Inject constructor(
         }
     }
 
-    // Fonction pour supprimer un rayon
+
+    /**
+     * Delete an aisle from the database.
+     * @param aisleId The ID of the aisle to delete.
+     */
+     val DEFAULT_AISLE_ID = "0phZ52jwfLfhd7ri8PqH" // ID du rayon par défaut
+
     fun deleteAisle(aisleId: String) {
         viewModelScope.launch {
-            val success = aisleRepository.deleteAisle(aisleId)
-            if (success) { }
+            try {
+                // Récupérer tous les médicaments associés à ce rayon
+                val medicines = aisleRepository.fetchMedicinesForAisle(aisleId)
+
+                // Réassigner chaque médicament au rayon par défaut
+                medicines.collect { medicineWithStock ->
+
+                    for (medicine in medicineWithStock) {
+                        stockRepository.updateMedicineAisle(
+                            medicine.medicineId,
+                            DEFAULT_AISLE_ID
+                        )
+                    }
+                }
+                // Supprimer le rayon après la réassignation
+                val isSuccess = aisleRepository.deleteAisle(aisleId)
+                if (isSuccess) {
+                    _aisleActionResult.emit(Result.success(true))
+                } else {
+                    _aisleActionResult.emit(Result.failure(Exception("Failed to delete aisle")))
+                }
+            } catch (e: Exception) {
+                _aisleActionResult.emit(Result.failure(e))
+            }
         }
     }
-
 }

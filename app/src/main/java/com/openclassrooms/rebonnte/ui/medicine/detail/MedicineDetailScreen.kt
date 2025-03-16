@@ -246,9 +246,6 @@ fun MedicineDetailScreen(
                         )
                     }
 
-
-
-
                     Spacer(modifier = Modifier.height(4.dp))
                     // Afficher le nom
                     Text(
@@ -268,8 +265,6 @@ fun MedicineDetailScreen(
                         fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                         modifier = Modifier.padding(2.dp).align(Alignment.Start)
                     )
-
-
                     Spacer(modifier = Modifier.height(26.dp))
 
                     HorizontalDivider(
@@ -280,10 +275,7 @@ fun MedicineDetailScreen(
                         thickness = 0.5.dp,
                         color = Rebonnte_green3
                     )
-
                     Spacer(modifier = Modifier.height(16.dp))
-
-
                     Text(
                         text = "Current quantity in stock",
                         style = MaterialTheme.typography.labelLarge,
@@ -363,7 +355,6 @@ fun MedicineDetailScreen(
                         color = Rebonnte_green3
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-
                     Row (
                         modifier = Modifier.fillMaxWidth()
                     ){
@@ -393,7 +384,6 @@ fun MedicineDetailScreen(
 
 
                         }
-
                         Column(modifier = Modifier.fillMaxWidth().weight(1.0f) ) {
                             //Frabicant ---
                             Text(
@@ -419,10 +409,7 @@ fun MedicineDetailScreen(
                             }
                         }
                     }
-
-
                     Spacer(modifier = Modifier.height(16.dp))
-
                     HorizontalDivider(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -431,9 +418,7 @@ fun MedicineDetailScreen(
                         thickness = 1.dp,
                         color = Rebonnte_green3
                     )
-
                     Spacer(modifier = Modifier.height(26.dp))
-
                     //indication ---
                     Text(
                         text = "Indication",
@@ -493,14 +478,9 @@ fun MedicineDetailScreen(
                         textAlign = TextAlign.Start,
                         modifier = Modifier.padding(2.dp)
                     )
-
                     Spacer(modifier = Modifier.height(200.dp))
-
-
-
                 }
             }
-
             // Dialog de confirmation pour la suppression de la medicine
             if (showDeleteDialog) {
                 AlertDialog(
