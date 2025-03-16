@@ -175,8 +175,6 @@ fun AisleDetailScreen(aisleId: String, viewModel: AisleDetailViewModel = hiltVie
                 }
 
             }
-
-
             if (medicines.isEmpty()) {
                 item {
 
@@ -192,7 +190,6 @@ fun AisleDetailScreen(aisleId: String, viewModel: AisleDetailViewModel = hiltVie
                 }
 
             } else {
-
                 // Liste des médicaments
                 items(medicines, key = { it.medicineId }) { medicine ->
                     MedicineWithStockItem(
@@ -201,7 +198,6 @@ fun AisleDetailScreen(aisleId: String, viewModel: AisleDetailViewModel = hiltVie
                     )
                 }
             }
-
         }
 
         // Dialog de confirmation pour la suppression de l'aisle
