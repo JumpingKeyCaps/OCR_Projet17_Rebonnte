@@ -332,7 +332,7 @@ class FireStoreService {
         }
 
         val listener = db.collection("medicines")
-            .orderBy("name") // Assurez-vous que le champ "name" est indexé dans Firestore
+            .orderBy("name")
             .startAt(searchQuery)
             .endAt(searchQuery + "\uf8ff") // Utilisation de "\uf8ff" pour filtrer tous les noms qui commencent par searchQuery
             .addSnapshotListener { snapshot, exception ->
@@ -561,7 +561,7 @@ class FireStoreService {
                 trySend(historyList)
             }
 
-        // Nettoyage de l'écouteur lorsque le Flow est terminé (par exemple, lors de la fermeture de la view ou du fragment)
+        // Nettoyage de l'écouteur lorsque le Flow est terminé
         awaitClose {
             listenerRegistration.remove()
         }
