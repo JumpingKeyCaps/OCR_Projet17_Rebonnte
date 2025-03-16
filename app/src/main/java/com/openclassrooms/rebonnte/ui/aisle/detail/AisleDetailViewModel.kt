@@ -7,7 +7,9 @@ import com.openclassrooms.rebonnte.data.repository.StockRepository
 import com.openclassrooms.rebonnte.domain.Aisle
 import com.openclassrooms.rebonnte.domain.MedicineWithStock
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,6 +31,10 @@ class AisleDetailViewModel @Inject constructor(
 
     private var _medicines = MutableStateFlow<List<MedicineWithStock>>(emptyList())
     val medicines: StateFlow<List<MedicineWithStock>> get() = _medicines
+
+
+    private val _aisleActionResult = MutableSharedFlow<Result<Boolean>>()
+    val aisleActionResult: SharedFlow<Result<Boolean>> get() = _aisleActionResult
 
     // Fonction pour charger le rayon et les médicaments associés
     fun loadAisle(aisleId: String) {
@@ -61,7 +67,7 @@ class AisleDetailViewModel @Inject constructor(
      * Delete an aisle from the database.
      * @param aisleId The ID of the aisle to delete.
      */
-    private val DEFAULT_AISLE_ID = "0phZ52jwfLfhd7ri8PqH" // ID du rayon par défaut
+     val DEFAULT_AISLE_ID = "0phZ52jwfLfhd7ri8PqH" // ID du rayon par défaut
 
     fun deleteAisle(aisleId: String) {
         viewModelScope.launch {
