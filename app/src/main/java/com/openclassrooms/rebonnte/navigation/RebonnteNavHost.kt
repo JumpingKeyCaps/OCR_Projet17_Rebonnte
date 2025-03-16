@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.google.firebase.auth.FirebaseAuth
 import com.openclassrooms.rebonnte.ui.MainScreen
 import com.openclassrooms.rebonnte.ui.aisle.detail.AisleDetailScreen
 import com.openclassrooms.rebonnte.ui.authentication.LoginScreen
@@ -64,14 +65,19 @@ fun RebonnteNavHost (
         ){ backStackEntry ->
             val medicineId = backStackEntry.arguments?.getString("medicineId")
                 ?: throw IllegalArgumentException("Medicine ID is required")
-            MedicineDetailScreen(medicineId = medicineId)
+            MedicineDetailScreen(medicineId = medicineId,
+                onBackClick = { navHostController.popBackStack()},
+                userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                )
         }
 
         //Aisle Details screen
         composable(route = ScreensNav.AisleDetails.route,
             arguments = ScreensNav.AisleDetails.navArguments,
             enterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }) + fadeIn() },
-            exitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }) + fadeOut() }
+            exitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }) + fadeOut() },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }) + fadeIn() },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }) + fadeOut() }
         ){backStackEntry ->
             val aisleId = backStackEntry.arguments?.getString("aisleId")
                 ?: throw IllegalArgumentException("Aisle ID is required")
@@ -84,11 +90,7 @@ fun RebonnteNavHost (
             )
         }
 
-        //Add medicine screen
-        composable(route = ScreensNav.AddMedicine.route){}
 
-        //Add Aisle screen
-        composable(route = ScreensNav.AddAisle.route){}
 
         //Login screen
         composable(route = ScreensNav.SignIn.route){
