@@ -10,9 +10,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.google.firebase.auth.FirebaseAuth
 import com.openclassrooms.rebonnte.ui.MainScreen
+import com.openclassrooms.rebonnte.ui.aisle.add.AddAisleScreen
 import com.openclassrooms.rebonnte.ui.aisle.detail.AisleDetailScreen
 import com.openclassrooms.rebonnte.ui.authentication.LoginScreen
 import com.openclassrooms.rebonnte.ui.authentication.RegisterUserScreen
+import com.openclassrooms.rebonnte.ui.medicine.add.AddMedicineScreen
 import com.openclassrooms.rebonnte.ui.medicine.detail.MedicineDetailScreen
 import com.openclassrooms.rebonnte.ui.noInternet.NoInternetScreen
 
@@ -44,15 +46,15 @@ fun RebonnteNavHost (
                         restoreState = false
                     }
                 },
-                onAddMedicineAction = {
-                    navHostController.navigate(ScreensNav.AddMedicine.route)
-                },
                 onMedicineClicked = {medicineWS ->
                     navHostController.navigate(ScreensNav.MedicineDetails.createRoute(medicineWS.medicineId))
                 },
                 onAisleClicked = { aisle ->
                     navHostController.navigate(ScreensNav.AisleDetails.createRoute(aisle.aisleId))
-                }
+                },
+                onAddMedicineClick = { navHostController.navigate(ScreensNav.AddMedicine.route) },
+                onAddAisleClick = { navHostController.navigate(ScreensNav.AddAisle.route) }
+
             )
         }
 
@@ -89,6 +91,26 @@ fun RebonnteNavHost (
                 onBackClick = { navHostController.popBackStack() }
             )
         }
+
+
+        //Add medicine screen
+        composable(route = ScreensNav.AddMedicine.route){
+            AddMedicineScreen(
+                onBackClick = { navHostController.popBackStack() },
+                onMedicineAdded = { navHostController.popBackStack() }
+            )
+
+        }
+
+        //Add aisle screen
+        composable(route = ScreensNav.AddAisle.route){
+            AddAisleScreen(
+                onBackClick = { navHostController.popBackStack() },
+                onAisleAdded = { navHostController.popBackStack() }
+            )
+        }
+
+
 
 
 
