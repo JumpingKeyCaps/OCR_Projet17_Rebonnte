@@ -68,7 +68,7 @@ fun AisleScreen(
                         ) {
                             Box {
                                 IconButton(onClick = { expanded = true }) {
-                                    Icon(Icons.Default.AccountCircle, contentDescription = null)
+                                    Icon(Icons.Default.AccountCircle, contentDescription = "logout button")
                                 }
                                 DropdownMenu(
                                     expanded = expanded,
