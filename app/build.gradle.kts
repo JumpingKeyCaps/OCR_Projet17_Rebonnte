@@ -119,6 +119,8 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            pickFirsts.add("META-INF/LICENSE.md")
+            pickFirsts.add("META-INF/LICENSE-notice.md")
         }
     }
 }
@@ -163,17 +165,30 @@ dependencies {
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
     implementation ("com.google.accompanist:accompanist-navigation-animation:0.32.0")
     //Tests
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
     testImplementation(libs.junit)
+    testImplementation("io.mockk:mockk:1.13.2")
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0")
+
+
+
+    // Tests instrumentalisés
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
 
-    testImplementation("io.mockk:mockk:1.13.2")
-    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
-    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0")
+
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test:rules:1.5.0")
+    androidTestImplementation("androidx.test.espresso:espresso-contrib:3.5.1")
+    androidTestImplementation("androidx.compose.material3:material3")
+
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.48") // ou la version la plus récente
+
+
 
 
 
