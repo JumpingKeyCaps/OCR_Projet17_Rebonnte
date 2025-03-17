@@ -33,7 +33,7 @@ class AisleViewModel @Inject constructor(
     /**
      * Fetch all aisles from the database.
      */
-    private fun fetchAllAisles() {
+    fun fetchAllAisles() {
         viewModelScope.launch {
             aisleRepository.fetchAllAisles()
                 .collect { aislesList ->
