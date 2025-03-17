@@ -27,6 +27,12 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      # Step 3.5 : Reconstruire le fichier keystore à partir du secret
+      - name: Decode keystore file
+        run: |
+          echo "${{ secrets.KEYSTORE_FILE_BASE64 }}" | base64 -d > app/rebonnte-release-key.jks
+          ls -la app/ 
+
       # Step 4 : Installation des dépendances du projet
       - name: Download dependencies
         run: ./gradlew dependencies
