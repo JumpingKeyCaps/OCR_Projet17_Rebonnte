@@ -29,41 +29,47 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      #start emulator and run instrumented tests
-      - name: Enable KVM
+      # Step 4 : Reconstruire le fichier keystore à partir du secret
+      - name: Decode keystore file
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+          echo "${{ secrets.KEYSTORE_FILE_BASE64 }}" | base64 -d > app/rebonnte-release-key.jks
+          ls -la app/ 
+
 
       # Step 4 : Installation des dépendances du projet
       - name: Download dependencies
         run: ./gradlew dependencies
+          
+          # Step  : Lancer les tests unitaire  + jacocoreport 
+               - name: Run Tests/generate Jacoco cover report
+               env:
+                 SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+               uses: reactivecircus/android-emulator-runner@v2
+               with:
+                 target: google_apis
+                 arch: x86_64
+                 api-level: 35
+                 script: |
+                   echo "--- [Waiting for emulator to stabilize...]"
+                   #sleep 30 
+                   adb wait-for-device
+                   
+                   echo "--- [Unlocking emulator screen...]"
+                   adb shell input keyevent 82
+                   adb shell wm dismiss-keyguard
+                   
+                   echo "--- [Lint debug]"
+                   ./gradlew lintDebug
+                   
+                   echo "--- [Generating Jacoco report...]"
+                   ./gradlew jacocoReport
+                   
+                   echo "--- [Checking if Jacoco report exists...]"
+                   ls app/build/reports/jacoco/jacocoTestReport
+                   cat app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml || echo " [X] - Jacoco report not found"
+      
 
-      # Step 5 : Exécuter les tests unitaires
-      - name: Run Unit Tests
-        run: ./gradlew test
-
-      # Step 6 : Démarrer l'émulateur et exécuter les tests instrumentés
-      - name: Start emulator and run instrumented tests
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          target: google_apis
-          arch: x86_64
-          api-level: 35
-          script: |
-            echo "--- [Waiting for emulator to stabilize...]"
-            adb wait-for-device
-            
-            echo "--- [Unlocking emulator screen...]"
-            adb shell input keyevent 82
-            adb shell wm dismiss-keyguard
-            echo "--- [Building app ...]"
-            ./gradlew build
-            echo "--- [Running instrumented tests ...]"
-            ./gradlew connectedAndroidTest
-
-      # Step 7 : Vérification du statut du job
+      # Step 6 : Vérification du statut du job
       - name: Fail PR on error
         if: ${{ failure() }}
         run: exit 1
