@@ -1,13 +1,9 @@
-name: CI - Main Branch PR
+name: CI - Test Branch PR
 
 on:
-  pull_request:
+  push:
     branches:
-      - "main"
-    paths:
-      - "develop/**"
-    types: [opened, synchronize, reopened]
-
+      - "feature/RA-38-Ajouter-SonarCloud-avec-les-Quality-Gates-dans-la-CI-"
 
 jobs:
   unit-tests:
@@ -35,7 +31,7 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE_FILE_BASE64 }}" | base64 -d > app/rebonnte-release-key.jks
           ls -la app/ 
-        
+      
 
       #start emulator and run instrumented tests
       - name: Enable KVM
@@ -55,48 +51,48 @@ jobs:
       # Step  : Lancer les tests unitaire et instrumented + jacocoreport + sonar analyse
       - name: Run Tests/generate Jacoco cover report and Sonar Quality Gate analyse
         env:
-         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         uses: reactivecircus/android-emulator-runner@v2
         with:
-           target: google_apis
-           arch: x86_64
-           api-level: 35
-           script: |
-             echo "--- [Waiting for emulator to stabilize...]"
-             #sleep 30 
-             adb wait-for-device
-             
-             echo "--- [Unlocking emulator screen...]"
-             adb shell input keyevent 82
-             adb shell wm dismiss-keyguard
-             
-             echo "--- [Lint debug]"
-             ./gradlew lintDebug
-             
-             echo "--- [Generating Jacoco report...]"
-             ./gradlew jacocoReport
-             
-             echo "--- [Checking if Jacoco report exists...]"
-             ls app/build/reports/jacoco/jacocoTestReport
-             cat app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml || echo " [X] - Jacoco report not found"
-             
-             echo "--- [SonarCloud Analysis...]"
-             ./gradlew sonar -Dsonar.projectKey=JumpingKeyCaps_OCR_Projet17_Rebonnte -Dsonar.organization=jumpingkeycaps -Dsonar.host.url=https://sonarcloud.io -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml --info
+          target: google_apis
+          arch: x86_64
+          api-level: 35
+          script: |
+            echo "--- [Waiting for emulator to stabilize...]"
+            #sleep 30 
+            adb wait-for-device
+            
+            echo "--- [Unlocking emulator screen...]"
+            adb shell input keyevent 82
+            adb shell wm dismiss-keyguard
+            
+            echo "--- [Lint debug]"
+            ./gradlew lintDebug
+            
+            echo "--- [Generating Jacoco report...]"
+            ./gradlew jacocoReport
+            
+            echo "--- [Checking if Jacoco report exists...]"
+            ls app/build/reports/jacoco/jacocoTestReport
+            cat app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml || echo " [X] - Jacoco report not found"
+            
+            echo "--- [SonarCloud Analysis...]"
+            ./gradlew sonar -Dsonar.projectKey=JumpingKeyCaps_OCR_Projet17_Rebonnte -Dsonar.organization=jumpingkeycaps -Dsonar.host.url=https://sonarcloud.io -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml --info
 
       # Step  : Construire l'APK de release signé
       - name: Build release APK
         run: ./gradlew assembleRelease
         env:
-           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
 
       # Step  : Sauvegarder l'APK généré
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-           name: release-apk
-           path: app/build/outputs/apk/release/app-release.apk
+          name: release-apk
+          path: app/build/outputs/apk/release/app-release.apk
 
       # Step  : No Validation PR en cas d'échec
       - name: Clearance PR

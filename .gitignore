@@ -17,3 +17,5 @@ local.properties
 .idea
 secrets.properties
 /keystores/
+keystore.properties
+gradle/secrets.gradle

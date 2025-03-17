@@ -1,4 +1,7 @@
 import com.android.build.gradle.BaseExtension
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -9,6 +12,23 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.gms.google-services")
 }
+
+//Signature app
+val useGithubSecrets = System.getenv("CI") == "true" // Vérifie si l'on est dans un environnement CI
+
+val keystoreProperties: Properties? = if (!useGithubSecrets) {
+    val keystorePropertiesFile = rootProject.file("keystore.properties")
+    if (keystorePropertiesFile.exists()) {
+        Properties().apply {
+            load(FileInputStream(keystorePropertiesFile))
+        }
+    } else {
+        null
+    }
+} else {
+    null
+}
+
 
 android {
     namespace = "com.openclassrooms.rebonnte"
@@ -27,10 +47,6 @@ android {
     }
 
 
-
-
-
-
     defaultConfig {
         applicationId = "com.openclassrooms.rebonnte"
         minSdk = 24
@@ -44,6 +60,33 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            if (useGithubSecrets) {
+                // Pour GitHub Actions avec secrets
+
+                val keystorePath = rootProject.file("app/rebonnte-release-key.jks") // Fichier keystore à fournir dans GitHub Actions
+                if (!keystorePath.exists()) {
+                    throw FileNotFoundException("Le fichier de keystore n'a pas été trouvé dans le chemin : ${keystorePath.absolutePath}")
+                }
+
+                // Utilisation des secrets de GitHub Actions
+                storeFile = keystorePath
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            } else {
+                // Pour la configuration locale avec un fichier keystore.properties
+                if (keystoreProperties != null) {
+                    storeFile = file(keystoreProperties["storeFile"] as String)
+                    storePassword = keystoreProperties["storePassword"] as String
+                    keyAlias = keystoreProperties["keyAlias"] as String
+                    keyPassword = keystoreProperties["keyPassword"] as String
+                }
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -51,6 +94,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
         debug {
             enableAndroidTestCoverage = true
