@@ -1,7 +1,5 @@
 name: CI - Test Branch PR
 
-
-
 on:
   push:
     branches:
