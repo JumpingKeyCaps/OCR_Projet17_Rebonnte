@@ -101,7 +101,7 @@ jobs:
   # Step  : firebase deploy
   deploy:
     needs: build
-    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main
+    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
