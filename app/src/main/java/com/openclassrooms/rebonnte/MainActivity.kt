@@ -1,62 +1,15 @@
 package com.openclassrooms.rebonnte
 
-import android.annotation.SuppressLint
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import android.content.BroadcastReceiver
+
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.openclassrooms.rebonnte.data.service.authentication.FirebaseAuthService
@@ -70,23 +23,19 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    //test injection of authservice
     @Inject
     lateinit var authService: FirebaseAuthService
 
-    private val networkStatus = HashMap<String, Boolean>() // Pour suivre l'état de chaque réseau
+    private val networkStatus = HashMap<String, Boolean>()
 
-
-
+    /**
+     * OnCreate method of the activity.
+     * @param savedInstanceState The saved instance state of the activity.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mainActivity = this
         setContent {
-            //debug of auth service injection
-            Log.d("authDebug", "Connected user: ${authService.getCurrentConnectedUser()!=null} ")
-
-
-
             //Internet connection checker
             val isInternetConnected = remember { mutableStateOf(isInternetAvailable(this)) }
             DisposableEffect(Unit) {
@@ -127,11 +76,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
-      //  startBroadcastReceiver()  //crazy loop
     }
-
-
 
     /**
      * Utility function to check is an internet connection is available.
@@ -145,8 +90,9 @@ class MainActivity : ComponentActivity() {
         } ?: false
     }
 
-
-
+    /**
+     * Companion object to store the main activity instance.
+     */
     companion object {
         lateinit var mainActivity: MainActivity
     }
