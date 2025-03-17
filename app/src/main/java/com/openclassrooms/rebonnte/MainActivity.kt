@@ -77,7 +77,6 @@ class MainActivity : ComponentActivity() {
     private val networkStatus = HashMap<String, Boolean>() // Pour suivre l'état de chaque réseau
 
 
-    private lateinit var myBroadcastReceiver: MyBroadcastReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -147,38 +146,6 @@ class MainActivity : ComponentActivity() {
     }
 
 
-
-
-
-    private fun startMyBroadcast() {
-        val intent = Intent("com.rebonnte.ACTION_UPDATE")
-        sendBroadcast(intent)
-        startBroadcastReceiver()
-    }
-
-    @SuppressLint("UnspecifiedRegisterReceiverFlag")
-    private fun startBroadcastReceiver() {
-        myBroadcastReceiver = MyBroadcastReceiver()
-        val filter = IntentFilter().apply {
-            addAction("com.rebonnte.ACTION_UPDATE")
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(myBroadcastReceiver, filter, RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(myBroadcastReceiver, filter)
-        }
-
-        Handler().postDelayed({
-           // startMyBroadcast()
-        }, 20)
-    }
-
-
-    class MyBroadcastReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            Toast.makeText(mainActivity, "Update reçu", Toast.LENGTH_SHORT).show()
-        }
-    }
 
     companion object {
         lateinit var mainActivity: MainActivity
