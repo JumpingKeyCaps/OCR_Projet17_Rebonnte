@@ -8,7 +8,7 @@ on:
 
 
 jobs:
-  unit-tests:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -100,3 +100,27 @@ jobs:
       - name: Clearance PR
         if: ${{ failure() }}
         run: echo "Build ou analyse de qualité échouée, PR bloquée."
+
+  # Step  : firebase deploy
+  deploy:
+    needs: build
+    if: github.event_name == 'pull_request' && github.ref == 'refs/heads/main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-apk
+          path: app/build/outputs/apk/release/
+
+      - name: Upload artifact to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1.5.1
+        with:
+          appId: ${{secrets.FIREBASE_APP_ID}}
+          token: ${{secrets.FIREBASE_TOKEN}}
+          #serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
+          groups: testers
+          file: app/build/outputs/apk/release/app-release.apk
