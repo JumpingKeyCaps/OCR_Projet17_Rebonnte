@@ -5,7 +5,7 @@ name: CI - Test Branch PR
 on:
   push:
     branches:
-      - "feature/RA-38-Ajouter-SonarCloud-avec-les-Quality-Gate-dans-la-CI-"
+      - "feature/RA-38-Ajouter-SonarCloud-avec-les-Quality-Gates-dans-la-CI-"
 
 jobs:
   unit-tests:
