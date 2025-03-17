@@ -140,6 +140,7 @@ dependencies {
     //Hilt (DI)
     implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.fragment)
+    testImplementation(libs.testng)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
     //Coroutines
@@ -169,6 +170,12 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    testImplementation("io.mockk:mockk:1.13.2")
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0")
+
+
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
