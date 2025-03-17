@@ -1,6 +1,5 @@
 name: CI - Main Branch PR
 
-
 on:
   pull_request:
     branches:
