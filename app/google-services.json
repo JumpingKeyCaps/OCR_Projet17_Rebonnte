@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "982402973256",
+    "project_id": "rebonnte-68b64",
+    "storage_bucket": "rebonnte-68b64.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:982402973256:android:3b5c9cfd7744940435627d",
+        "android_client_info": {
+          "package_name": "com.openclassrooms.rebonnte"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD80z57OCKId60849Qa6NZQ5z7UDCICRSI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
